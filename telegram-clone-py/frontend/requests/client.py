@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from enum import Enum
 import ssl
+import time
 import socket
+from functools import reduce
 from urllib.parse import urlparse, ParseResult
 
 from .response import Response
@@ -119,7 +121,7 @@ class Client:
         self._socket.connect((self._parsed_url.netloc, self._scheme.value))
         self._socket.send(payload)
 
-    def recieve(self) -> Response:
+    def recieve(self, timeout: int = 1) -> Response:
         """
         Recieves the HTTP Response from Server
 
@@ -131,7 +133,26 @@ class Client:
         Response
              The Response from the Server
         """
-        result = self._socket.recv(4096)
+        self._socket.setblocking(0)
+        data: List[bytes] = []
+        begin = time.time()
+
+        while True:
+            # Data recieved
+            if data and time.time() - begin > timeout:
+                break
+            # Timeout reached
+            elif time.time() - begin > timeout * 2:
+                break
+            try:
+                if recieved := self._socket.recv(8192):
+                    data.append(recieved)
+                    begin = time.time()
+                else:
+                    time.sleep(0.1)
+            except socket.error:
+                pass
+        result = (b"".join(data)).decode()
         self._socket.close()
-        parser = ResponseParser(result.decode("utf-8"))
+        parser = ResponseParser(result)
         return parser.parse()

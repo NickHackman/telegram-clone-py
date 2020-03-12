@@ -2,7 +2,7 @@
 from itertools import islice
 import json
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 from .response import Response
 from .status_code import StatusCode
@@ -54,7 +54,7 @@ class ResponseParser:
             header[key] = value
         return header
 
-    def _parse_first_line(self, line: str) -> (str, StatusCode):
+    def _parse_first_line(self, line: str) -> Tuple[str, StatusCode]:
         """
         Parses the first line of the Response
 
