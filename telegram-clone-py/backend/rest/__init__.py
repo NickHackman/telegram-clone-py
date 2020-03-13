@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import asyncio
 import re
+import json
 
 from typing import (
     Callable,
@@ -217,11 +218,13 @@ class Rest:
                     match.groups(), arg_types
                 )
                 if self._config.mode is Mode.Debug:
-                    valid_path_200(path, ip_address)
+                    valid_path_200(path, ip_address, req_method.value)
+                if req_method in (Method.PUT, Method.POST):
+                    return construct_header(200, "OK", route(*arguments, payload))
                 return construct_header(200, "OK", route(*arguments))
 
         if self._config.mode is Mode.Debug:
-            invalid_path_404(path, ip_address)
+            invalid_path_404(path, ip_address, req_method.value)
         return construct_header(404, "Not found")
 
     @staticmethod
@@ -256,7 +259,7 @@ class Rest:
         return arguments
 
     @staticmethod
-    def _parse_request(request: str) -> Tuple[str, Method, Optional[str]]:
+    def _parse_request(request: str) -> Tuple[str, Method, Optional[Dict[Any, Any]]]:
         """
         Parses request into important fields
 
@@ -277,6 +280,8 @@ class Rest:
         """
         first_line: List[str] = request.split("\r\n", 1)[0].split()
         method: Method = Method(first_line[0])
-        if method is not Method.POST:
+        if method is not Method.POST and method is not Method.PUT:
             return (first_line[1], method, None)
-        return (first_line[1], method, None)
+        split_msg: List[str] = request.split("\r\n\r\n")
+        payload: Dict[Any, Any] = json.loads(split_msg[1])
+        return (first_line[1], method, payload)

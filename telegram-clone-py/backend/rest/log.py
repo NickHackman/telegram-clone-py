@@ -40,7 +40,7 @@ def config_print(config: Config) -> None:
     print("Press CTRL + C to quit\n")
 
 
-def invalid_path_404(path: str, ip_address: str) -> None:
+def invalid_path_404(path: str, ip_address: str, method: str) -> None:
     """
     Prints 404 for URL and IP address
 
@@ -54,11 +54,11 @@ def invalid_path_404(path: str, ip_address: str) -> None:
          IP address that attempted to access that url
     """
     print(
-        f"❌ {Fore.RED + Style.BRIGHT + '404'} {Style.BRIGHT + path} from {ip_address}"
+        f"❌ {Fore.RED + Style.BRIGHT + '404'} {method} {Style.BRIGHT + path} from {ip_address}"
     )
 
 
-def valid_path_200(path: str, ip_address: str) -> None:
+def valid_path_200(path: str, ip_address: str, method: str) -> None:
     """
     Prints 200 for URL and IP address
 
@@ -72,5 +72,5 @@ def valid_path_200(path: str, ip_address: str) -> None:
          IP address that attempted to access that url
     """
     print(
-        f"✔ {Fore.GREEN + Style.BRIGHT + '200'} {Style.BRIGHT + path} from {ip_address}"
+        f"✔ {Fore.GREEN + Style.BRIGHT + '200'} {method} {Style.BRIGHT + path} from {ip_address}"
     )
