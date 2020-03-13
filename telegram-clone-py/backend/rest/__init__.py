@@ -17,12 +17,13 @@ from typing import (
     Sequence,
 )
 from enum import Enum
-from itertools import islice, zip_longest
+from itertools import islice
 
 from colorama import init  # type: ignore
 
 from .config import Config, Mode
 from .log import config_print, add_route_print, invalid_path_404, valid_path_200
+from .header import construct_header
 
 
 class Method(Enum):
@@ -76,7 +77,9 @@ class Rest:
     A Flask-esque implementation
     """
 
-    _routes: List[Tuple[Pattern[str], Method, List[Type], Callable[..., Any]]]
+    _routes: List[
+        Tuple[Pattern[str], Method, List[Type], Callable[..., Dict[Any, Any]]]
+    ]
     _config: Config
 
     def __init__(self, config_path: Union[str, Path]):
@@ -86,7 +89,7 @@ class Rest:
             init(autoreset=True)
             config_print(self._config)
 
-    def route(self, route_str: str, method: Method) -> Callable[..., Any]:
+    def route(self, route_str: str, method: Method) -> Callable[..., Dict[Any, Any]]:
         """
         Route decorator calls function based on the provided Route and Method
 
@@ -102,7 +105,7 @@ class Rest:
         -------
 
         Callable[[str, Method], Any]
-             Function that takes a route_str and a type and returns Anything that's JSON serializable
+             Function that takes a route_str and a type and returns a dict that's JSON serializable
 
         Examples
         --------
@@ -169,6 +172,7 @@ class Rest:
         async def handle_request(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
+            # TODO: 8192 is a decent constant value (used by most browsers as the max request size), but isn't perfect
             byte_msg = await reader.read(8192)
             msg = byte_msg.decode()
             (ip_address, _) = writer.get_extra_info("peername")
@@ -179,7 +183,7 @@ class Rest:
 
         event_loop = asyncio.get_event_loop()
         server = asyncio.start_server(
-            handle_request, self._config.host, self._config.port, loop=event_loop
+            handle_request, self._config.host, self._config.port, loop=event_loop,
         )
         event_loop.run_until_complete(server)
         event_loop.run_forever()
@@ -212,10 +216,13 @@ class Rest:
                 arguments: List[Any] = self._convert_arg_types(
                     match.groups(), arg_types
                 )
-                valid_path_200(path, ip_address)
-                return route(*arguments)
-        invalid_path_404(path, ip_address)
-        return "404 constructed HTTP Response"
+                if self._config.mode is Mode.Debug:
+                    valid_path_200(path, ip_address)
+                return construct_header(200, "OK", route(*arguments))
+
+        if self._config.mode is Mode.Debug:
+            invalid_path_404(path, ip_address)
+        return construct_header(404, "Not found")
 
     @staticmethod
     def _convert_arg_types(groups: Sequence[str], arg_types: List[Type]) -> List[Any]:
@@ -244,7 +251,7 @@ class Rest:
              Provided argument can't be coerced into expected type
         """
         arguments: List[Any] = []
-        for (item, arg_type) in zip_longest(groups, arg_types, fillvalue=Type.Str):
+        for (item, arg_type) in zip(groups, arg_types):
             arguments.append(arg_type.value(item))
         return arguments
 
