@@ -38,6 +38,7 @@ Platform: Agnostic, but favoring `Linux/Unix`, depends on `GUI` library choice
 - Sqlite3 database
 - Allow multiple users
 - All messages on Server are encrypted
+- Use websockets to send and recieve messages from client
 
 ### Client
 
