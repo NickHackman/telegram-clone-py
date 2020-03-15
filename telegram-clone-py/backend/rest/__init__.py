@@ -70,7 +70,7 @@ class Type(Enum):
             return (Type.Int, r"/(\d+)")
         elif string == "float":
             return (Type.Float, r"/([\d\.]+)")
-        return (Type.Str, r"/(\w+)")
+        return (Type.Str, r"/([^\/]+)")
 
 
 class Rest:
@@ -159,7 +159,7 @@ class Rest:
                     regex += pattern
                 else:
                     types.append(Type.Str)
-                    regex += r"/([\w]+)"
+                    regex += r"/([^\/]+)"
             else:
                 regex += f"/{segment}"
         regex += r"$"
