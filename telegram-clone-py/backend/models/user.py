@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from typing import Dict
 
-import sqlalchemy as db
+import sqlalchemy as db  # type: ignore
 
 from . import Base
 

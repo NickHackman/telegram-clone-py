@@ -1,8 +1,10 @@
 import datetime
+import smtplib
+
 import jwt
 
 
-def create_jwt(email: str, password: bytes, secret: str, duration: int = 24) -> str:
+def create_jwt(email: str, password: bytes, secret: str, duration: int = 24) -> bytes:
     """
     Constructs a JSON Web Token
 
@@ -50,7 +52,6 @@ def send_verification_email(email: str, server_url: str, token: str) -> None:
     token: str
          JWT with 7 days expiration date
     """
-    import smtplib
 
     with smtplib.SMTP("smtp.mailtrap.io", 2525) as server:
         server.login("fb7544c35ebfc9", "5b92c9be84f60d")
