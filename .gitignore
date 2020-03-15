@@ -11,3 +11,6 @@ htmlcov
 
 # Don't push Sqlite3 database
 telegram-clone-py.db
+
+# Don't leak secret codes
+config.json
