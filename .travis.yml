@@ -5,9 +5,8 @@ python:
 
 install:
   - pip install pipenv
-  - pipenv install
   - pipenv install --dev
 
 script:
-  - mypy -m ./telegram-clone-py/backend
-  - mypy -m ./telegram-clone-py/frontend
+  - mypy -m backend
+  - mypy -m frontend
