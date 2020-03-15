@@ -8,3 +8,6 @@ tmp/
 build
 htmlcov
 .mypy_cache/
+
+# Don't push Sqlite3 database
+telegram-clone-py.db
