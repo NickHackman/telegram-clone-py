@@ -3,8 +3,8 @@ from enum import Enum
 import ssl
 import time
 import socket
-from functools import reduce
 from urllib.parse import urlparse, ParseResult
+from typing import List
 
 from .response import Response
 from .response_parser import ResponseParser
@@ -133,7 +133,7 @@ class Client:
         Response
              The Response from the Server
         """
-        self._socket.setblocking(0)
+        self._socket.setblocking(False)
         data: List[bytes] = []
         begin = time.time()
 

@@ -3,13 +3,13 @@ import os
 from pathlib import Path
 from typing import Dict, Any, List
 
-import bcrypt
+import bcrypt  # type: ignore
 import jwt
 
-from rest import Rest, Method
-from models import Session, User
-from response import response, Status
-from util import create_jwt, send_verification_email
+from rest import Rest, Method  # type: ignore
+from models import Session, User  # type: ignore
+from response import response, Status  # type: ignore
+from util import create_jwt, send_verification_email  # type: ignore
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
