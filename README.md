@@ -1,5 +1,7 @@
 # telegram-clone-py
 
+[![Build Status](https://travis-ci.com/NickHackman/telegram-clone-py.svg?branch=master)](https://travis-ci.com/NickHackman/telegram-clone-py)
+
 ## Purpose
 
 This Telegrram clone is written in Python for a computer science course at [Ohio
