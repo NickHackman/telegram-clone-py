@@ -26,6 +26,7 @@ class User(Base):
     bio = db.Column(db.String(144))
     public_key = db.Column(db.LargeBinary(4096), nullable=False)
     password = db.Column(db.String, nullable=False)
+    verified = db.Column(db.Boolean, default=False)
 
     def __repr__(self) -> str:
         return f"<User @{self.handle} {self.email}>"
@@ -36,4 +37,5 @@ class User(Base):
             "handle": self.handle,
             "bio": self.bio,
             "public_key": self.public_key.decode(),
+            "verified": self.verified,
         }
