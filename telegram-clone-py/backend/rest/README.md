@@ -70,6 +70,10 @@ Port number to be used, generally for debugging `5000+` is suggested
 
 `Path` to file to log to
 
+### secret
+
+Super secret passcode that should not be shared
+
 ### Example
 
 ```json
@@ -78,6 +82,7 @@ Port number to be used, generally for debugging `5000+` is suggested
   "port": 8888,
   "mode": "debug",
   "log_file": "log_file.txt"
+  "secret": "super_secret_passcodes"
 }
 ```
 

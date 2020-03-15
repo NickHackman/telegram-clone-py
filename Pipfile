@@ -7,6 +7,9 @@ verify_ssl = true
 
 [packages]
 colorama = "*"
+sqlalchemy = "*"
+bcrypt = "*"
+pyjwt = "*"
 
 [requires]
 python_version = "3.8"

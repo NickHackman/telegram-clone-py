@@ -70,7 +70,7 @@ class Type(Enum):
             return (Type.Int, r"/(\d+)")
         elif string == "float":
             return (Type.Float, r"/([\d\.]+)")
-        return (Type.Str, r"/(\w+)")
+        return (Type.Str, r"/([^\/]+)")
 
 
 class Rest:
@@ -159,7 +159,7 @@ class Rest:
                     regex += pattern
                 else:
                     types.append(Type.Str)
-                    regex += r"/([\w]+)"
+                    regex += r"/([^\/]+)"
             else:
                 regex += f"/{segment}"
         regex += r"$"
@@ -226,6 +226,30 @@ class Rest:
         if self._config.mode is Mode.Debug:
             invalid_path_404(path, ip_address, req_method.value)
         return construct_header(404, "Not found")
+
+    def get_secret(self) -> str:
+        """
+        Get the Server Config Secret
+
+        Returns
+        -------
+
+        str
+             super secret passcodes
+        """
+        return self._config.secret
+
+    def get_url(self) -> str:
+        """
+        Get the URL
+
+        Returns
+        -------
+
+        str
+              URL of Server
+        """
+        return f"http://{self._config.host}:{self._config.port}"
 
     @staticmethod
     def _convert_arg_types(groups: Sequence[str], arg_types: List[Type]) -> List[Any]:

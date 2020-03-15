@@ -29,13 +29,15 @@ class Config:
     host: str
     port: int
     log_file: str
+    secret: str
     mode: Mode = Mode.Debug
 
-    def __init__(self, host: str, port: int, log_file: str, mode: str):
+    def __init__(self, host: str, port: int, log_file: str, mode: str, secret: str):
         self.host = host
         self.port = port
         self.log_file = log_file
         self.mode = Mode(mode)
+        self.secret = secret
 
     @staticmethod
     def load_from_file(path: Union[Path, str]) -> Config:
