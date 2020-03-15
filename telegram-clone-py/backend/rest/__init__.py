@@ -227,6 +227,18 @@ class Rest:
             invalid_path_404(path, ip_address, req_method.value)
         return construct_header(404, "Not found")
 
+    def get_secret(self) -> str:
+        """
+        Get the Server Config Secret
+
+        Returns
+        -------
+
+        str
+             super secret passcodes
+        """
+        return self._config.secret
+
     @staticmethod
     def _convert_arg_types(groups: Sequence[str], arg_types: List[Type]) -> List[Any]:
         """
