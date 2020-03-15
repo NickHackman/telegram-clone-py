@@ -2,7 +2,6 @@
 import os
 from pathlib import Path
 from typing import Dict, Any, List
-import datetime
 
 import bcrypt
 import jwt
@@ -10,6 +9,7 @@ import jwt
 from rest import Rest, Method
 from models import Session, User
 from response import response, Status
+from util import create_jwt, send_verification_email
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
@@ -46,10 +46,60 @@ def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
         password=bcrypt.hashpw(payload["password"].encode(), bcrypt.gensalt()),
         handle=payload["handle"],
     )
+    send_verification_email(
+        user.email,
+        rest.get_url(),
+        create_jwt(user.email, user.password, secret, 24 * 7).decode(),
+    )
     Session.add(user)
     # Handle error with invalid email
     Session.commit()
     return response(Status.Success, user.to_json())
+
+
+@rest.route("/resend/<email>/verification/<token>", Method.POST)
+def resend_email_verificaiton(
+    email: str, token: str, payload: Dict[Any, Any]
+) -> Dict[Any, Any]:
+    """
+    Resends the Verification email
+
+    Parameters
+    ----------
+
+    email: str
+         User's email
+
+    token: str
+         JWT Token to verify the user
+
+    payload: Dict[Any, Any]
+         Empty payload
+
+    Returns
+    -------
+
+    Dict[Any, Any]
+         No User with email: {email}
+         Invalid token
+         Verification email sent
+         Invalid Token
+    """
+    user = Session.query(User).filter(User.email == email).first()
+    if not user:
+        return response(Status.Error, f"No User with email: {email}")
+    try:
+        json = jwt.decode(token, secret, algorithms=["HS256"])
+        if json["email"] != email and json["password"] == user.password:
+            return response(Status.Error, "Invalid token")
+        send_verification_email(
+            email,
+            rest.get_url(),
+            create_jwt(user.email, user.password, secret, 24 * 7).decode(),
+        )
+        return response(Status.Success, "Verification email sent")
+    except jwt.DecodeError:
+        return response(Status.Error, "Invalid Token")
 
 
 @rest.route("/login/<email>", Method.POST)
@@ -182,6 +232,18 @@ def get_user(email: str) -> Dict[Any, Any]:
     return response(Status.Success, user.to_json())
 
 
+@rest.route("/verify/<email>/<token>", Method.POST)
+def verify_email(email, token, payload) -> Dict[Any, Any]:
+    try:
+        jwt.decode(token, secret, algorithms=["HS256"])
+    except jwt.DecodeError:
+        return response(Status.Error, "Failed to validate token")
+    user = Session.query(User).filter(User.email == email).first()
+    user.verified = True
+    Session.commit()
+    return response(Status.Success, "Successfully verified email")
+
+
 @rest.route("/list/users", Method.GET)
 def list_users() -> Dict[Any, Any]:
     """
@@ -195,41 +257,6 @@ def list_users() -> Dict[Any, Any]:
     users: List[User] = Session.query(User).all()
     users_json: List[Dict[str, str]] = [user.email for user in users]
     return response(Status.Success, users_json)
-
-
-def create_jwt(email: str, password: bytes, secret: str, duration: int = 24) -> str:
-    """
-    Constructs a JSON Web Token
-
-    Parameters
-    ----------
-
-    email: str
-         User Email address
-
-    password: bytes
-         User encrypted password
-
-    secret: str
-         Server secret passcode
-
-    duration: int
-         Hours to allow defaults to 24
-
-    Returns
-    -------
-
-    A JWT with all this information encrypted
-    """
-    return jwt.encode(
-        {
-            "email": email,
-            "password": password.decode(),
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
-        },
-        secret,
-        algorithm="HS256",
-    )
 
 
 rest.run()

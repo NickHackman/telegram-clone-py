@@ -239,6 +239,18 @@ class Rest:
         """
         return self._config.secret
 
+    def get_url(self) -> str:
+        """
+        Get the URL
+
+        Returns
+        -------
+
+        str
+              URL of Server
+        """
+        return f"http://{self._config.host}:{self._config.port}"
+
     @staticmethod
     def _convert_arg_types(groups: Sequence[str], arg_types: List[Type]) -> List[Any]:
         """
