@@ -1,6 +1,6 @@
 # Rest
 
-Attempt to emulate `Flask` a `Python` library for HTTP servers
+Attempt to emulate `Flask` a `Python` Web App Framework
 
 ## Goals
 
@@ -72,7 +72,7 @@ Port number to be used, generally for debugging `5000+` is suggested
 
 ### secret
 
-Super secret passcode that should not be shared
+Super secret passcode that should not be shared, provided to `JWT`
 
 ### Example
 
