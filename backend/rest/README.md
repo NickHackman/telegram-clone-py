@@ -81,7 +81,7 @@ Super secret passcode that should not be shared, provided to `JWT`
   "host": "127.0.0.1",
   "port": 8888,
   "mode": "debug",
-  "log_file": "log_file.txt"
+  "log_file": "log_file.txt",
   "secret": "super_secret_passcodes"
 }
 ```
