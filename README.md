@@ -2,13 +2,16 @@
 
 [![Build Status](https://travis-ci.com/NickHackman/telegram-clone-py.svg?branch=master)](https://travis-ci.com/NickHackman/telegram-clone-py)
 
+A Clone of Telegram written from the ground up, with a goal of security. Split
+into [frontend](https://github.com/NickHackman/telegram-clone-py/tree/master/frontend) and [backend](https://github.com/NickHackman/telegram-clone-py/tree/master/backend)
+
 ## Purpose
 
-This Telegrram clone is written in Python for a computer science course at [Ohio
+This Telegram clone is written in Python for a computer science course at [Ohio
 State Universiry](https://www.osu.edu/), CSE 3461. The purpose of
-this clone is to satisfy the requirements of that project.
+this clone is to satisfy the requirements of that lab.
 
-- Server and Client use `Sockets` to communicate via `TCP`
+- Server and Client communicate via `TCP`
 - Server must respond to a minimum of 5 different commands
 - configuration file for port the server will listen on
 - Server startup message
@@ -30,37 +33,45 @@ this clone is to satisfy the requirements of that project.
 Language: `Python`
 Platform: Agnostic, but favoring `Linux/Unix`, depends on `GUI` library choice
 
+## Database Planning
+
+[Entity Relationship Diagram](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Entity%20Relationship%20Diagram.jpg)
+
+[Relational Database Schema](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Database%20Schema.jpg)
+
 ## Goals
 
 ### Server
 
-- Emulate [Flask](https://flask.palletsprojects.com/en/1.1.x/)\*
-- Server uses a `REST`-esque API
-- Emulate [Requests](https://2.python-requests.org/en/master/)\* for responses
-- Sqlite3 database
-- Allow multiple users
-- All messages on Server are encrypted
+- Built on top of a custom implementation of a Web App Framework similar to [Flask](https://flask.palletsprojects.com/en/1.1.x/)\*
+- Server follows `REST` principles
+- Utilize `Sqlite3` as the DBMS
+- Verifiy Users Email addresses
+- Utilize [Python-RSA](https://github.com/sybrenstuvel/python-rsa/) to maintain
+  end to end encryption of messages
+- Follow best practices for security
 - Use websockets to send and recieve messages from client
+
+[Web App Framework documentation](https://github.com/NickHackman/telegram-clone-py/blob/master/backend/rest/README.md)
 
 ### Client
 
-- Graphical User Interface (probably GTK or Qt)
-- Emulate [Requests](https://2.python-requests.org/en/master/)\*
-- Display chats with individual users
-- Use private and public keys in order to keep messages private
-- Function similarly to Telegram-desktop
+- Utilize [PyQT](https://github.com/PyQt5/PyQt) for GUI
+- Built on top of a custom implementation of HTTP Requests similar to [Requests](https://2.python-requests.org/en/master/)\*
+- Utilize [Python-RSA](https://github.com/sybrenstuvel/python-rsa/) to maintain
+  end to end encryption of messages
+- Behave and look similarly to Telegram-desktop
 - Allow `Markdown` in chat messages
-- **Stretch Goal** send emoji
+- Allow emoji in chat messages along with an emoji selector menu
 
-_\*_ But objectively **worse**
+[HTTP Request Library documentation](https://github.com/NickHackman/telegram-clone-py/blob/master/frontend/requests/README.md)
 
-### Operations
+_\*_ Objectively **WORSE**
 
-- Create Account
-- Edit Account
-- Delete Account
-- Send Message
-- List Messages
-- Edit Message
-- Delete Message (only for everyone)
-- List Users
+## Screenshots
+
+**TODO** screenshots here
+
+## License
+
+[GPLv3](https://github.com/NickHackman/telegram-clone-py/blob/master/LICENSE)
