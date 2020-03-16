@@ -89,7 +89,7 @@ import requests
 
 response: requests.Response = requests.get("https://www.google.com")
 
-# If the error isn't a 200 or 100 it will raise an HTTPError
+# If the error isn't a 200 or 100 it will raise YourOwnException
 if response.is_error():
     raise YourOwnException("reason")
 ```
