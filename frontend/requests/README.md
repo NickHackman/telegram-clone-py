@@ -8,65 +8,90 @@ but with only a few select features.
 - Emulate [Requests](https://github.com/psf/requests)
 - Support HTTP and HTTPs
 - Support sending and recieving `JSON` payloads
-- Performant, but mainly satisifies project goals
 
-## Files
+## Documentation
 
-### Client
+### requests.request
 
-- Directly utilizes the socket to send a recieve data from it
-- Constructs Header (to send) and Response (when recieving)
+```python
+import requests
+# Import Method for ease of use
+from requests import Method
 
-### Header
+response: requests.Response = requests.requests("https://www.google.com", Method.GET)
+```
 
-- Fields necessary to send data to a server
+Main entry point into library, as a generic way to make `HTTP` requests, but
+used sparingly preferring `requests.get()`, `requests.put()`, `requests.post()`,
+and `requests.delete()`. All of which are solely wrappers around `requests.request()`.
 
-### ResponseParser
+### Method
 
-Parses the servers Response into necessary fields
+| Variant | Corresponding HTTP Request |
+| ------- | -------------------------- |
+| GET     | "GET"                      |
+| PUT     | "PUT"                      |
+| POST    | "POST                      |
+| DELETE  | "DELETE"                   |
+| HEAD    | **unsupported**            |
+| PATCH   | **unsupported**            |
 
-- Header
-- JSON
-- Status Code
-- HTTP Version
+### requests.Response
 
-### Response
+Returned from every entry point to `requests`, behaves very closely to [Requests](https://github.com/psf/requests)
 
-an HTTP Response sent from the server
+| Attribute    | Type           | Purpose                                                                                                                      |
+| ------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| status_code  | StatusCode     | Tuple[int, str] that describes the status                                                                                    |
+| http_version | str            | Version of HTTP Response usually `HTTP/1.1` or `HTTP/2`                                                                      |
+| header       | Dict[str, str] | The header parsed into it's corresponding values, note arrays aren't parsed as such but as `str` for the sake of performance |
+| json         | Dict[Any, Any] | Payload of `Response` parsed as `JSON`                                                                                       |
 
-#### StatusCode
+### requests.StatusCode
 
-An `Enum` representing the Status Code as a Tuple[int, str]
+A Tuple representing the status of an `HTTP` request, for instance
 
-#### Header
+```python
+(200, "OK")
+```
 
-A python `Dict[str, str]` that stores all key value pairs in the Respone's
-header section. Doesn't include the first line of Header, those are separate fields.
-
-#### HTTP Version
-
-Version of HTTP used by Server _usually_ `HTTP/1.1`
-
-#### JSON
-
-Payload of response is expected to be `JSON` and therefore is loaded from the
-`Python str`
-
-### Example
+In order to get the actual status code integer it must be unpacked
 
 ```python
 import requests
 
-# GET, PUT, POST and DELETE all have their own methods
-# If they don't satisfy your needs then use the bare `request`
-response: requests.Response = requests.get("www.google.com")
+response: requests.StatusCode = requests.get("https://www.google.com")
 
-# Error handling
-response.raise_for_status() # Either throws an exception or does nothing
+status_code = response.status_code
+(code, reason) = status_code.value
+```
 
+Majority of the time though, the actual code isn't necessary so there are
+methods part of `requests.Response` that handle error checking
+
+```python
+import requests
+
+response: requests.Response = requests.get("https://www.google.com")
+
+# If the error isn't a 200 or 100 it will raise an HTTPError
+# NOTE: HTTPError has a reference to the requests.Response that caused it
+try:
+    response.raise_for_status()
+except HTTPError as http_error:
+    # use http_error
+```
+
+If you'd rather raise your own `Exception` then you can do an if check
+
+```python
+import requests
+
+response: requests.Response = requests.get("https://www.google.com")
+
+# If the error isn't a 200 or 100 it will raise an HTTPError
 if response.is_error():
-    (code, reason) = response.status_code.value # unpack the StatusCode
-    raise Exception(f"Error: {reason}")
+    raise YourOwnException("reason")
 ```
 
 ## Performance Issues
