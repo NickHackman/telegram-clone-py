@@ -20,7 +20,7 @@ class User(Base):
     """
 
     handle = db.Column(db.String(64), primary_key=True)
-    info = db.orm.relationship("UserInfo", cascade="save-update, merge, delete")
+    info = db.Column(db.String(255), db.ForeignKey("UserInfo.email"))
 
     def __repr__(self) -> str:
         return f"<User @{self.handle} {self.email}>"
