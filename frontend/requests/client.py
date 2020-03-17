@@ -126,7 +126,7 @@ class Client:
                 self._socket.connect((self._parsed_url.netloc, self._scheme.value))
             self._socket.send(payload)
         except Exception as e:
-            raise HTTPError(e, None)
+            raise HTTPError(str(e), None)
 
     def recieve(self, timeout: int = 1) -> Response:
         """
