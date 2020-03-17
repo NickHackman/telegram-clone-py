@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 import os
 import json
 
@@ -96,14 +96,14 @@ class CreateAccount(QMainWindow):
         """
         password: str = self.password_input.text
         verify_password: str = self.verify_password_input.text
-        email: str = self.email_input.text
-        handle: str = self.handle_input.text
+        email = self.email_input.text
+        handle = self.handle_input.text
 
         if password != verify_password:
             return
 
         (pubkey, privkey) = self._generate_rsa_keys()
-        payload: Dict[str, str] = {
+        payload: Dict[str, Any] = {
             "email": email,
             "handle": handle,
             "password": password,
