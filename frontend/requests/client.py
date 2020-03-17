@@ -6,7 +6,7 @@ import socket
 from urllib.parse import urlparse, ParseResult
 from typing import List
 
-from .response import Response
+from .response import Response, HTTPError
 from .response_parser import ResponseParser
 from .header import Header, Method
 
@@ -113,18 +113,20 @@ class Client:
              Combination of Header and Payload to send
         """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self._scheme is Scheme.https:
-            context: ssl.SSLContext = self._setup_ssl()
-            self._socket = context.wrap_socket(
-                self._socket, server_hostname=self._parsed_url.netloc
-            )
+        try:
+            if self._scheme is Scheme.https:
+                context: ssl.SSLContext = self._setup_ssl()
+                self._socket = context.wrap_socket(
+                    self._socket, server_hostname=self._parsed_url.netloc
+                )
 
-        possible_port: List[str] = self._parsed_url.netloc.split(":")
-        if (possible_port := self._parsed_url.netloc.split(":")) is not None:
-            self._socket.connect((possible_port[0], int(possible_port[1])))
-        else:
-            self._socket.connect((self._parsed_url.netloc, self._scheme.value))
-        self._socket.send(payload)
+            if (possible_port := self._parsed_url.netloc.split(":")) is not None:
+                self._socket.connect((possible_port[0], int(possible_port[1])))
+            else:
+                self._socket.connect((self._parsed_url.netloc, self._scheme.value))
+            self._socket.send(payload)
+        except Exception as e:
+            raise HTTPError(e, None)
 
     def recieve(self, timeout: int = 1) -> Response:
         """

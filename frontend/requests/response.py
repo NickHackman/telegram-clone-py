@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from .status_code import StatusCode
 
@@ -63,9 +63,9 @@ class HTTPError(Exception):
     HTTPError occurred meaning Code wasn't a 2xx value
     """
 
-    response: Response
+    response: Optional[Response]
 
-    def __init__(self, message: str, response: Response):
+    def __init__(self, message: str, response: Optional[Response]):
         """
         Constructs an HTTPError
 
