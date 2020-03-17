@@ -17,6 +17,23 @@ class CreateAccount(QMainWindow):
     verify_password_input: TextInput
 
     def __init__(self, *args, **kwargs):
+        """
+        Consructs CreateAccount screen
+
+        Fields
+        ------
+
+        email: takes valid email addresses
+        handle: takes valid Handles
+        password: takes valid passwords
+        verify password: takes valid passwords
+
+        Buttons
+        -------
+
+        create account: generates RSA key and POSTs to server,
+          does nothing if password != verify password
+        """
         super(CreateAccount, self).__init__(*args, **kwargs)
         # TODO: more strict email regex
         self.email_input = TextInput(hint="Email", validator=r".+@.+\.\w{3}")
@@ -40,20 +57,54 @@ class CreateAccount(QMainWindow):
 
     @staticmethod
     def _generate_rsa_keys() -> Tuple[rsa.PublicKey, rsa.PrivateKey]:
+        """
+        Generates RSA keys with all CPUs or 1
+
+        Returns
+        -------
+
+        Tuple[rsa.PublicKey, rsa.PrivateKey]
+              Tuple of Public and Private keys
+        """
         return rsa.newkeys(4096, poolsize=os.cpu_count() or 1)
-        # rsa.PrivateKey.save_pkcs1()
+        # TODO: Save Privatekey to file
+        # via rsa.PrivateKey.save_pkcs1()
 
     @staticmethod
-    def _strip_whitespace(private_key: str) -> str:
-        strip_header_footer = private_key[31:-29]
+    def _strip_whitespace(public_key: str) -> str:
+        """
+        Removes Header and Footer of PEM RSA Key then strips newlines
+
+        Parameters
+        ----------
+
+        public_key: str
+             string to strip
+
+        Returns
+        -------
+
+        str
+             Stripped string
+        """
+        strip_header_footer = public_key[31:-29]
         return "".join(strip_header_footer.split())
 
     def _create_account(self) -> None:
+        """
+        Creates an Account by generating an RSA and creating an account Server side
+        """
+        password = self.password_input.text
+        verify_password = self.verify_password_input.text
+
+        if password != verify_password:
+            return
+
         (pubkey, privkey) = self._generate_rsa_keys()
         payload: Dict[str, str] = {
             "email": self.email_input.text,
             "handle": self.handle_input.text,
-            "password": self.password_input.text,
+            "password": password,
             "public_key": self._strip_whitespace(pubkey.save_pkcs1().decode()),
         }
         response = requests.post(
