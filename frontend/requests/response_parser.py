@@ -71,7 +71,7 @@ class ResponseParser:
              the Version and StatusCode
         """
         parts = line.split()
-        code = StatusCode((int(parts[1]), parts[2]))
+        code = StatusCode(int(parts[1]))
         self._line_number += 1
         return (parts[0], code)
 
@@ -109,6 +109,5 @@ class ResponseParser:
         lines: List[str] = self._response.splitlines()
         (version, code) = self._parse_first_line(lines[self._line_number])
         header: Dict[str, str] = self._parse_header(lines)
-        # Chop off numerical value at beginning and end of payload
-        json: Dict[Any, Any] = self._parse_json(lines[self._line_number + 1 : -2])
+        json: Dict[Any, Any] = self._parse_json(lines[self._line_number :])
         return Response(code, version, header, json)
