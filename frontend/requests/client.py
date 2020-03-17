@@ -118,7 +118,12 @@ class Client:
             self._socket = context.wrap_socket(
                 self._socket, server_hostname=self._parsed_url.netloc
             )
-        self._socket.connect((self._parsed_url.netloc, self._scheme.value))
+
+        possible_port: List[str] = self._parsed_url.netloc.split(":")
+        if (possible_port := self._parsed_url.netloc.split(":")) is not None:
+            self._socket.connect((possible_port[0], int(possible_port[1])))
+        else:
+            self._socket.connect((self._parsed_url.netloc, self._scheme.value))
         self._socket.send(payload)
 
     def recieve(self, timeout: int = 1) -> Response:
