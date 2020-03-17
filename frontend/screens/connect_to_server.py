@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget  # type: ignore
 
 from ..components.text_input import TextInput, InputType

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Tuple, Dict, Any
 import os
 import json
