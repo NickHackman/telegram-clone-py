@@ -290,4 +290,19 @@ def list_users() -> Dict[Any, Any]:
     return response(Status.Success, users_json)
 
 
+@rest.route("/is/telegram-clone-server", Method.GET)
+def is_telegram_clone_server() -> Dict[Any, Any]:
+    """
+    Whether or not a Server is a Telegram-clone-py server
+
+    A way to verify that a server is connectable
+
+    Returns
+    -------
+
+    bool of True
+    """
+    return response(Status.Success, True)
+
+
 rest.run()
