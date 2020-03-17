@@ -4,7 +4,7 @@ import json
 
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
 
-from ..components.text_input import TextInput
+from ..components.text_input import TextInput, InputType
 from .. import requests
 
 
@@ -29,7 +29,7 @@ class Login(QMainWindow):
         """
         super(Login, self).__init__(*args, **kwargs)
         self.email_input = TextInput(hint="Email", validator=r".+@.+\.\w{3}")
-        self.password_input = TextInput(hint="Password")
+        self.password_input = TextInput(hint="Password", input_type=InputType.Password)
         button: QPushButton = QPushButton("Login")
         button.clicked.connect(self._login)
 

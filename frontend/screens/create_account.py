@@ -6,7 +6,7 @@ import json
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget  # type: ignore
 import rsa  # type: ignore
 
-from ..components.text_input import TextInput
+from ..components.text_input import TextInput, InputType
 from .. import requests
 
 
@@ -38,8 +38,10 @@ class CreateAccount(QMainWindow):
         # TODO: more strict email regex
         self.email_input = TextInput(hint="Email", validator=r".+@.+\.\w{3}")
         self.handle_input = TextInput(hint="Handle")
-        self.password_input = TextInput(hint="Password")
-        self.verify_password_input = TextInput(hint="Verify Password")
+        self.password_input = TextInput(hint="Password", input_type=InputType.Password)
+        self.verify_password_input = TextInput(
+            hint="Verify Password", input_type=InputType.Password
+        )
         button = QPushButton("Create Account")
         button.clicked.connect(self._create_account)
 
