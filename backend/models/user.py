@@ -2,12 +2,13 @@
 from typing import Dict
 
 import sqlalchemy as db  # type: ignore
+from sqlalchemy.orm import relationship
 
 from . import Base
 
 
 class User(Base):
-    __tablename__ = "Users"
+    __tablename__ = "user"
     """
     User Db Model
 
@@ -20,12 +21,13 @@ class User(Base):
     """
 
     handle = db.Column(db.String(64), primary_key=True)
-    info = db.Column(db.String(255), db.ForeignKey("UserInfo.email"))
+    email = db.Column(db.String(255), db.ForeignKey("userinfo.email"))
+    userinfo = relationship("UserInfo", back_populates="users")
 
     def __repr__(self) -> str:
-        return f"<User @{self.handle} {self.email}>"
+        return f"<User @{self.handle}>"
 
     def to_json(self) -> Dict[str, str]:
-        info_json = self.info.to_json()
+        info_json = self.userinfo.to_json()
         info_json["handle"] = self.handle
         return info_json
