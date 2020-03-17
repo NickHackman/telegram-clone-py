@@ -7,7 +7,7 @@ import bcrypt  # type: ignore
 import jwt
 
 from rest import Rest, Method  # type: ignore
-from models import Session, User  # type: ignore
+from models import Session, User, UserInfo  # type: ignore
 from response import response, Status  # type: ignore
 from util import create_jwt, send_verification_email  # type: ignore
 
@@ -29,18 +29,20 @@ def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     payload: Dict[Any, Any]
          Payload of the form
          {
-          "email": "email_here",
+          "email": "email_here"*,
           "password": "password_here",
-          "handle": "handle_here",
+          "handle": "handle_here"*,
           "public_key": "public_key_here"
          }
+         * required
 
     Returns
     -------
 
     User (without encrypted password)
     """
-    user = User(
+    user = User(handle=payload["handle"], email=payload["email"])
+    user_info = UserInfo(
         email=payload["email"],
         public_key=bytes(payload["public_key"].encode()),
         password=bcrypt.hashpw(payload["password"].encode(), bcrypt.gensalt()),
@@ -49,17 +51,18 @@ def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     send_verification_email(
         user.email,
         rest.get_url(),
-        create_jwt(user.email, user.password, secret, 24 * 7).decode(),
+        create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
     )
+    Session.add(user_info)
     Session.add(user)
     # Handle error with invalid email
     Session.commit()
     return response(Status.Success, user.to_json())
 
 
-@rest.route("/resend/<email>/verification/<token>", Method.POST)
+@rest.route("/resend/<handle>/verification/<token>", Method.POST)
 def resend_email_verificaiton(
-    email: str, token: str, payload: Dict[Any, Any]
+    handle: str, token: str, payload: Dict[Any, Any]
 ) -> Dict[Any, Any]:
     """
     Resends the Verification email
@@ -80,22 +83,22 @@ def resend_email_verificaiton(
     -------
 
     Dict[Any, Any]
-         No User with email: {email}
+         No User with handle: {handle}
          Invalid token
          Verification email sent
          Invalid Token
     """
-    user = Session.query(User).filter(User.email == email).first()
+    user = Session.query(User).filter(User.handle == handle).first()
     if not user:
-        return response(Status.Error, f"No User with email: {email}")
+        return response(Status.Error, f"No User with handle: {handle}")
     try:
         json = jwt.decode(token, secret, algorithms=["HS256"])
-        if json["email"] != email and json["password"] == user.password:
+        if json["email"] != user.info.email and json["password"] == user.info.password:
             return response(Status.Error, "Invalid token")
         send_verification_email(
-            email,
+            user.info.email,
             rest.get_url(),
-            create_jwt(user.email, user.password, secret, 24 * 7).decode(),
+            create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
         )
         return response(Status.Success, "Verification email sent")
     except jwt.DecodeError:
@@ -123,25 +126,25 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     Password is incorrect or
     JSON Web Token to authenticate user
     """
-    user = Session.query(User).filter(User.email == email).first()
-    if not user:
+    user_info = Session.query(UserInfo).filter(UserInfo.email == email).first()
+    if not user_info:
         return response(Status.Error, f"No user with email: {email}")
-    if not bcrypt.checkpw(payload["password"].encode(), user.password):
+    if not bcrypt.checkpw(payload["password"].encode(), user_info.password):
         return response(Status.Failure, f"Password is incorrect")
     return response(
-        Status.Success, create_jwt(user.email, user.password, secret).decode()
+        Status.Success, create_jwt(user_info.email, user_info.password, secret).decode()
     )
 
 
-@rest.route("/user/delete/<email>/<token>", Method.DELETE)
-def delete_user(email: str, token: str) -> Dict[Any, Any]:
+@rest.route("/user/delete/<handle>/<token>", Method.DELETE)
+def delete_user(handle: str, token: str) -> Dict[Any, Any]:
     """
     Deletes a User
 
     Parameters
     ----------
 
-    email: str
+    handle: str
          Email of User to delete
 
     token: str
@@ -150,27 +153,27 @@ def delete_user(email: str, token: str) -> Dict[Any, Any]:
     Returns
     -------
 
-    No User with email: {email}
+    No User with handle: {handle}
     Invalid token
     Successfully deleted {email}
     Failed to validate Token
     """
-    user = Session.query(User).filter(User.email == email).first()
+    user = Session.query(User).filter(User.handle == handle).first()
     if not user:
-        return response(Status.Failure, f"No User with email: {email}")
+        return response(Status.Failure, f"No User with handle: {handle}")
     try:
         json = jwt.decode(token, secret, algorithms=["HS256"])
-        if json["email"] != email and json["password"] == user.password:
+        if json["email"] != user.info.email and json["password"] == user.info.password:
             return response(Status.Error, "Invalid token")
         Session.delete(user)
         Session.commit()
-        return response(Status.Success, f"Successfully deleted {email}")
+        return response(Status.Success, f"Successfully deleted {handle}")
     except jwt.DecodeError:
         return response(Status.Error, "Failed to validate token")
 
 
-@rest.route("/update/user/<email>/<token>", Method.PUT)
-def update_user(email: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+@rest.route("/update/user/<handle>/<token>", Method.PUT)
+def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Updates a User
 
@@ -186,21 +189,24 @@ def update_user(email: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, An
     payload: Dict[Any, Any]
          Payload of the form
          {
-          "password": "password_here",
           "handle": "handle_here",
-          "public_key": "public_key_here"
-          "bio": "bio_here"
+          "info": {
+            "password": "password_here",
+            "handle": "handle_here",
+            "public_key": "public_key_here"
+            "bio": "bio_here"
+          }
          }
 
     Returns
     -------
 
-    No User with email: {email}
+    No User with handle: {handle}
     Updated User information
     """
-    user = Session.query(User).filter(User.email == email)
+    user = Session.query(User).filter(User.handle == handle)
     if not user:
-        return response(Status.Failure, f"No User with email: {email}")
+        return response(Status.Failure, f"No User with handle: {handle}")
     try:
         jwt.decode(token, secret, algorithms=["HS256"])
     except jwt.DecodeError:
@@ -210,8 +216,8 @@ def update_user(email: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, An
     return response(Status.Success, user.to_json())
 
 
-@rest.route("/user/<email>", Method.GET)
-def get_user(email: str) -> Dict[Any, Any]:
+@rest.route("/user/<handle>", Method.GET)
+def get_user(handle: str) -> Dict[Any, Any]:
     """
     Gets a User by Email
 
@@ -226,20 +232,35 @@ def get_user(email: str) -> Dict[Any, Any]:
 
     User information including public_key, bio, and handle
     """
-    user = Session.query(User).filter(User.email == email).first()
+    user = Session.query(User).filter(User.handle == handle).first()
     if not user:
-        return response(Status.Failure, f"No Users with email: {email}")
+        return response(Status.Failure, f"No Users with handle: {handle}")
     return response(Status.Success, user.to_json())
 
 
-@rest.route("/verify/<email>/<token>", Method.POST)
-def verify_email(email, token, payload) -> Dict[Any, Any]:
+@rest.route("/verify/<handle>/<token>", Method.POST)
+def verify_email(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+    """
+    Verifiy Email address
+
+    Parameters
+    ----------
+
+    handle: str
+         User Handle
+
+    token: str
+         JWT for User
+
+    payload: Dict[Any, Any]
+         In this case this payload is empty
+    """
     try:
         jwt.decode(token, secret, algorithms=["HS256"])
     except jwt.DecodeError:
         return response(Status.Error, "Failed to validate token")
-    user = Session.query(User).filter(User.email == email).first()
-    user.verified = True
+    user = Session.query(User).filter(User.handle == handle).first()
+    user.info.verified = True
     Session.commit()
     return response(Status.Success, "Successfully verified email")
 
@@ -247,15 +268,15 @@ def verify_email(email, token, payload) -> Dict[Any, Any]:
 @rest.route("/list/users", Method.GET)
 def list_users() -> Dict[Any, Any]:
     """
-    Lists all Users by Email
+    Lists all Users by Handle
 
     Returns
     -------
 
-    List[str] of User emails
+    List[str] of User handles
     """
     users: List[User] = Session.query(User).all()
-    users_json: List[Dict[str, str]] = [user.email for user in users]
+    users_json: List[Dict[str, str]] = [user.handle for user in users]
     return response(Status.Success, users_json)
 
 

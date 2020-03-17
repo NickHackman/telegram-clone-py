@@ -18,6 +18,7 @@ Base: Any = declarative_base()
 Base.metadata.bind = engine
 
 from .user import User
+from .user_info import UserInfo
 
 
 Base.metadata.create_all()
