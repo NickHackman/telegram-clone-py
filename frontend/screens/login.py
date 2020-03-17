@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Dict
+from typing import Dict, Any
 import json
 
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
