@@ -1,9 +1,36 @@
 #!/usr/bin/env python3
 from typing import Callable, Optional
+from enum import Enum
 
 from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout  # type: ignore
 from PyQt5.QtCore import QRegExp  # type: ignore
 from PyQt5.QtGui import QRegExpValidator  # type: ignore
+
+
+class InputType(Enum):
+    """
+    Input Types
+
+    Variants
+    ------
+
+    Password
+        Display Asteriks rather than actual text
+
+    Normal
+        Display Text
+
+    NoEcho
+        Display Nothing
+
+    PasswordEchoOnEdit
+        Display only the most recently entered characters, but not previous
+    """
+
+    Password = QLineEdit.Password
+    Normal = QLineEdit.Normal
+    NoEcho = QLineEdit.NoEcho
+    PasswordEchoOnEdit = QLineEdit.PasswordEchoOnEdit
 
 
 class TextInput(QWidget):
@@ -16,6 +43,7 @@ class TextInput(QWidget):
         hint: str = "",
         text_changed: Optional[Callable[[str], None]] = None,
         validator: Optional[str] = None,
+        input_type: InputType = InputType.Normal,
         width: int = 64,
         height: int = 32
     ):
@@ -34,6 +62,9 @@ class TextInput(QWidget):
         validator: Optional[str] = None
              Validator regular expression
 
+        input_type: InputType = InputType.Normal
+             How to display text
+
         width: int = 64
              Default width of TextInput
 
@@ -44,6 +75,7 @@ class TextInput(QWidget):
         layout = QHBoxLayout(self)
         self._text_input = QLineEdit()
         self._text_input.setPlaceholderText(hint)
+        self._text_input.setEchoMode(input_type.value)
         self.text_changed = text_changed
         self._text_input.textChanged.connect(self._text_changed)
         if validator is not None:

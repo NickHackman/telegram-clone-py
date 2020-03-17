@@ -5,7 +5,7 @@ import sys
 from PyQt5.QtWidgets import QApplication  # type: ignore
 from typing import List
 
-from .screens.create_account import CreateAccount
+from .screens.login import Login
 from .models import Chat, User, Message
 
 chats: List[Chat] = [
@@ -17,6 +17,6 @@ chats: List[Chat] = [
 ]
 
 app = QApplication(sys.argv)
-window = CreateAccount()
+window = Login()
 window.show()
 app.exec_()
