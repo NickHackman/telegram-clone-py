@@ -5,7 +5,7 @@ import sys
 from PyQt5.QtWidgets import QApplication  # type: ignore
 from typing import List
 
-from .screens.login import Login
+from .screens.connect_to_server import ConnectToServer
 from .models import Chat, User, Message
 
 chats: List[Chat] = [
@@ -17,6 +17,6 @@ chats: List[Chat] = [
 ]
 
 app = QApplication(sys.argv)
-window = Login()
+window = ConnectToServer()
 window.show()
 app.exec_()
