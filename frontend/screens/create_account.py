@@ -3,7 +3,7 @@ from typing import Tuple, Dict, Any
 import os
 import json
 
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QLineEdit  # type: ignore
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget  # type: ignore
 import rsa  # type: ignore
 
 from ..components.text_input import TextInput
@@ -11,7 +11,7 @@ from .. import requests
 
 
 class CreateAccount(QMainWindow):
-    email_input: QLineEdit
+    email_input: TextInput
     handle_input: TextInput
     password_input: TextInput
     verify_password_input: TextInput
