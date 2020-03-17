@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Callable, Optional
 from enum import Enum
 

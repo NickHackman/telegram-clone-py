@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Callable, Tuple
 
 from PyQt5.QtCore import QSize
