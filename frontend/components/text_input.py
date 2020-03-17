@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from typing import Callable, Optional
 
-from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout
-from PyQt5.QtCore import QRegExp
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtWidgets import QWidget, QLineEdit, QHBoxLayout  # type: ignore
+from PyQt5.QtCore import QRegExp  # type: ignore
+from PyQt5.QtGui import QRegExpValidator  # type: ignore
 
 
 class TextInput(QWidget):

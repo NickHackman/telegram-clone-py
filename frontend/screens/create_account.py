@@ -3,8 +3,8 @@ from typing import Tuple, Dict
 import os
 import json
 
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QLineEdit
-import rsa
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QLineEdit  # type: ignore
+import rsa  # type: ignore
 
 from ..components.text_input import TextInput
 from .. import requests
@@ -94,16 +94,18 @@ class CreateAccount(QMainWindow):
         """
         Creates an Account by generating an RSA and creating an account Server side
         """
-        password = self.password_input.text
-        verify_password = self.verify_password_input.text
+        password: str = self.password_input.text
+        verify_password: str = self.verify_password_input.text
+        email: str = self.email_input.text
+        handle: str = self.handle_input.text
 
         if password != verify_password:
             return
 
         (pubkey, privkey) = self._generate_rsa_keys()
         payload: Dict[str, str] = {
-            "email": self.email_input.text,
-            "handle": self.handle_input.text,
+            "email": email,
+            "handle": handle,
             "password": password,
             "public_key": self._strip_whitespace(pubkey.save_pkcs1().decode()),
         }

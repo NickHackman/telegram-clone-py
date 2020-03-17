@@ -2,7 +2,7 @@
 import sys
 
 # from .components.chat_list import ChatList
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication  # type: ignore
 from typing import List
 
 from .screens.create_account import CreateAccount
