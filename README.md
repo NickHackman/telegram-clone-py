@@ -1,3 +1,5 @@
+![Telegram-clone-py-icon](https://github.com/NickHackman/telegram-clone-py/blob/master/frontend/assets/teelgram-clone-py-icon.svg)
+
 # telegram-clone-py
 
 [![Build Status](https://travis-ci.com/NickHackman/telegram-clone-py.svg?branch=master)](https://travis-ci.com/NickHackman/telegram-clone-py)
@@ -71,6 +73,10 @@ _\*_ Objectively **WORSE**
 ## Screenshots
 
 **TODO** screenshots here
+
+## Thanks
+
+All Icons are from [Icons8](https://icons8.com)
 
 ## License
 
