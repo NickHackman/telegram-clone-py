@@ -1,21 +1,45 @@
 import sys
 
-# from .components.chat_list import ChatList
-from PyQt5.QtWidgets import QApplication  # type: ignore
-from typing import List
+from typing import Any, Dict, Tuple, Callable
 
+from PyQt5.QtWidgets import QApplication, QMainWindow  # type: ignore
+
+from .screens import Router
+from .screens.login import Login
+from .screens.create_account import CreateAccount
 from .screens.connect_to_server import ConnectToServer
-from .models import Chat, User, Message
 
-chats: List[Chat] = [
-    Chat(User("", "idk_a_public_key", "A"), [Message("hi", "A", "You", "now")],),
-    Chat(
-        User("", "idk_a_public_key", "B"),
-        [Message("I use Arch Btw", "You", "B", "now")],
-    ),
-]
+
+def setup_route_function(window: QMainWindow, screen_object: Any) -> None:
+    """
+    Faciliate switching Windows for Router
+
+    Parameters
+    ----------
+
+    window: QMainWindow
+         MainWindow of Qt Application
+
+    screen_object: Any
+         Screen Object that can setup a MainWindow
+    """
+    screen_object.setupUi(window)
+    window.show()
+
+
+routes: Dict[str, Any] = {
+    "/": ConnectToServer,
+    "/login": Login,
+    "/create/account": CreateAccount,
+}
 
 app = QApplication(sys.argv)
-window = ConnectToServer()
-window.show()
-app.exec_()
+main_window = QMainWindow()
+first_route: Tuple[str, Callable[..., Any], QMainWindow] = (
+    "/",
+    ConnectToServer,
+    main_window,
+)
+router: Router = Router(routes, setup_route_function, first_route)
+setup_route_function(main_window, ConnectToServer(router))
+sys.exit(app.exec_())
