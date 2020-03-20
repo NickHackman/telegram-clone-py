@@ -49,7 +49,6 @@ class Router:
     state: Dict[str, Any]
     route_stack: List[Tuple[str, Callable[..., Any], QtWidgets.QMainWindow]]
     routes: Dict[str, Any]
-    setup_route_fun: Callable[..., None]
 
     def __init__(
         self,
