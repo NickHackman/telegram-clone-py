@@ -1,8 +1,7 @@
-from typing import Dict, Any
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from .. import requests
+from ..requests.response import HTTPError
 from . import Router, TELEGRAM_ICON, BACKARROW_ICON
 
 
@@ -31,6 +30,16 @@ class ConnectToServer(object):
         self.label_2.setStyleSheet("color: rgb(99, 111, 122);")
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)
+        self.url_input = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.url_input.setAutoFillBackground(False)
+        self.url_input.setStyleSheet(
+            "background: rgb(23, 33, 43);\n"
+            "border-color: rgb(16, 25, 33);\n"
+            "color: rgb(255, 255, 255);"
+        )
+        self.url_input.setInputMethodHints(QtCore.Qt.ImhUrlCharactersOnly)
+        self.url_input.setObjectName("url_input")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.url_input)
         self.port_input = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.port_input.setStyleSheet(
             "background: rgb(23, 33, 43);\n"
@@ -42,16 +51,6 @@ class ConnectToServer(object):
         self.port_input.setPlaceholderText("")
         self.port_input.setObjectName("port_input")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.port_input)
-        self.url_input = QtWidgets.QLineEdit(self.formLayoutWidget)
-        self.url_input.setAutoFillBackground(False)
-        self.url_input.setStyleSheet(
-            "background: rgb(23, 33, 43);\n"
-            "border-color: rgb(16, 25, 33);\n"
-            "color: rgb(255, 255, 255);"
-        )
-        self.url_input.setInputMethodHints(QtCore.Qt.ImhUrlCharactersOnly)
-        self.url_input.setObjectName("url_input")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.url_input)
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(130, 100, 211, 181))
         self.label_3.setStyleSheet("width: 25;\n" "height: 25;")
@@ -100,9 +99,13 @@ class ConnectToServer(object):
         url: str = self.url_input.text()
         port: int = int(self.port_input.text())
 
-        response = requests.get(f"{url}:{port}/is/telegram-clone-server")
-        if response.json["status"] == "success":
-            self.router.set_state("url", f"{url}:{port}")
-            self.router.push("/login", window)
-        else:
+        try:
+            response = requests.get(f"{url}:{port}/is/telegram-clone-server")
+            response.raise_for_status()
+            if response.json["status"] == "success":
+                self.router.set_state("url", f"{url}:{port}")
+                self.router.push("/login", window)
+            else:
+                self.error_message.setText("Not a valid Telegram-clone-server")
+        except HTTPError:
             self.error_message.setText("Not a valid Telegram-clone-server")

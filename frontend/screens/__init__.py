@@ -145,9 +145,9 @@ class Router:
         """
         try:
             while route := self.route_stack.pop():
-                (name, fun, args) = route
+                (name, fun, window) = route
                 if until_name == name:
-                    self.setup_route_fun(fun(*args, self))
+                    self.setup_route_fun(window, fun(self))
                     break
         except IndexError:
             pass
