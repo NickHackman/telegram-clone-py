@@ -161,6 +161,22 @@ class CreateAccount(object):
     def _generate_rsa_keys() -> Tuple[rsa.PublicKey, rsa.PrivateKey]:
         return rsa.newkeys(4096, poolsize=os.cpu_count() or 1)
 
+    @staticmethod
+    def _strip_whitespace(public_key: str) -> str:
+        """
+        Removes Header and Footer of PEM RSA Key then strips newlines
+        Parameters
+        ----------
+        public_key: str
+             string to strip
+        Returns
+        -------
+        str
+             Stripped string
+        """
+        strip_header_footer = public_key[31:-29]
+        return "".join(strip_header_footer.split())
+
     def _create_account(self, window) -> None:
         """
         Creates an Account with provided fields
@@ -185,7 +201,7 @@ class CreateAccount(object):
             "email": email,
             "handle": handle,
             "password": password,
-            "public_key": pubkey,
+            "public_key": self._strip_whitespace(pubkey.save_pkcs1().decode()),
         }
 
         url: str = self.router.state["url"]
