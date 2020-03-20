@@ -1,4 +1,4 @@
-![Telegram-clone-py-icon](https://github.com/NickHackman/telegram-clone-py/blob/master/frontend/assets/teelgram-clone-py-icon.svg)
+<img src="./frontend/assets/telegram-clone-py-icon.svg" height="200" width="200" alt="Telegram-clone-py logo"/>
 
 # telegram-clone-py
 
@@ -37,9 +37,9 @@ Platform: Agnostic, but favoring `Linux/Unix`, depends on `GUI` library choice
 
 ## Database Planning
 
-[Entity Relationship Diagram](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Entity%20Relationship%20Diagram.jpg)
+![Entity Relationship Diagram](./db-planning/Telegram-clone-py-Entity%20Relationship%20Diagram.jpg)
 
-[Relational Database Schema](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Database%20Schema.jpg)
+![Relational Database Schema](./db-planning/Telegram-clone-py-Database%20Schema.jpg)
 
 ## Goals
 
@@ -73,16 +73,16 @@ _\*_ Objectively **WORSE**
 ## Screenshots
 
 Connect to server screen
-![Connect to Server](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/connect_to_server.png)
+![Connect to Server](./screenshots/connect_to_server.png)
 
 Create Account
-![Create Account](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/create_account.png)
+![Create Account](./screenshots/create_account.png)
 
 Login
-![Login](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/login.png)
+![Login](./screenshots/login.png)
 
 Server
-![Server](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/server_running.png)
+![Server](./screenshots/server_running.png)
 
 ## Thanks
 
