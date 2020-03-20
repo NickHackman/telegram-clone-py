@@ -72,7 +72,17 @@ _\*_ Objectively **WORSE**
 
 ## Screenshots
 
-**TODO** screenshots here
+Connect to server screen
+![Connect to Server](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/connect_to_server.png)
+
+Create Account
+![Create Account](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/create_account.png)
+
+Login
+![Login](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/login.png)
+
+Server
+![Server](https://github.com/NickHackman/telegram-clone-py/blob/master/screenshots/server_running.png)
 
 ## Thanks
 
