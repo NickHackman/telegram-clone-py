@@ -1,7 +1,7 @@
 from typing import Dict
 
 import sqlalchemy as db  # type: ignore
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship  # type: ignore
 
 from . import Base
 

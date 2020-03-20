@@ -18,8 +18,7 @@ class StatusCode(Enum):
         bool
              Whether or not the StatusCode is an error
         """
-        (code, reason) = self.value
-        return 400 <= code <= 599
+        return 400 <= self.value <= 599
 
     def is_client_error(self) -> bool:
         """
@@ -31,8 +30,7 @@ class StatusCode(Enum):
         bool
              Whether or not the StatusCode is a client error
         """
-        (code, reason) = self.value
-        return 400 <= code <= 499
+        return 400 <= self.value <= 499
 
     def is_server_error(self) -> bool:
         """
@@ -44,8 +42,7 @@ class StatusCode(Enum):
         bool
              Whether or not the StatusCode is a server error
         """
-        (code, reason) = self.value
-        return 500 <= code <= 599
+        return 500 <= self.value <= 599
 
     def __str__(self) -> str:
         """

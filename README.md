@@ -1,3 +1,5 @@
+<img src="./frontend/assets/telegram-clone-py-icon.svg" height="200" width="200" alt="Telegram-clone-py logo"/>
+
 # telegram-clone-py
 
 [![Build Status](https://travis-ci.com/NickHackman/telegram-clone-py.svg?branch=master)](https://travis-ci.com/NickHackman/telegram-clone-py)
@@ -35,9 +37,9 @@ Platform: Agnostic, but favoring `Linux/Unix`, depends on `GUI` library choice
 
 ## Database Planning
 
-[Entity Relationship Diagram](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Entity%20Relationship%20Diagram.jpg)
+![Entity Relationship Diagram](./db-planning/Telegram-clone-py-Entity%20Relationship%20Diagram.jpg)
 
-[Relational Database Schema](https://github.com/NickHackman/telegram-clone-py/blob/master/db-planning/Telegram-clone-py-Database%20Schema.jpg)
+![Relational Database Schema](./db-planning/Telegram-clone-py-Database%20Schema.jpg)
 
 ## Goals
 
@@ -70,7 +72,21 @@ _\*_ Objectively **WORSE**
 
 ## Screenshots
 
-**TODO** screenshots here
+Connect to server screen
+![Connect to Server](./screenshots/connect_to_server.png)
+
+Create Account
+![Create Account](./screenshots/create_account.png)
+
+Login
+![Login](./screenshots/login.png)
+
+Server
+![Server](./screenshots/server_running.png)
+
+## Thanks
+
+All Icons are from [Icons8](https://icons8.com)
 
 ## License
 

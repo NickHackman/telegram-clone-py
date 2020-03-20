@@ -108,5 +108,8 @@ class ResponseParser:
         lines: List[str] = self._response.splitlines()
         (version, code) = self._parse_first_line(lines[self._line_number])
         header: Dict[str, str] = self._parse_header(lines)
-        json: Dict[Any, Any] = self._parse_json(lines[self._line_number :])
-        return Response(code, version, header, json)
+        try:
+            json = self._parse_json(lines[self._line_number :])
+            return Response(code, version, header, json)
+        except Exception:
+            return Response(code, version, header, {})
