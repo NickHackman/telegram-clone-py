@@ -74,6 +74,13 @@ Port number to be used, generally for debugging `5000+` is suggested
 
 Super secret passcode that should not be shared, provided to `JWT`
 
+### websocket_port
+
+This is a hack, as a result of writing a custom HTTP Requests server, in order
+to use the same port and IP address it would require writing my own `Websocket`
+implementation as well, only way to get around that and use a library, such as
+`websockets` is to use a different port
+
 ### Example
 
 ```json
@@ -83,6 +90,7 @@ Super secret passcode that should not be shared, provided to `JWT`
   "mode": "debug",
   "log_file": "log_file.txt",
   "secret": "super_secret_passcodes"
+  "websocket_port": 8889,
 }
 ```
 
