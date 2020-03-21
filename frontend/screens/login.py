@@ -147,7 +147,7 @@ class Login(object):
         response = requests.post(f"{url}/login/{email}", json.dumps(payload))
         if response.json["status"] == "success":
             self.router.set_state("jwt", response.json["response"])
-            self.router.push("/create/account", window)
+            self.router.push("/main", window)
         else:
             self.error_message.setText(response.json["response"])
             self.login_button.setEnabled(True)
