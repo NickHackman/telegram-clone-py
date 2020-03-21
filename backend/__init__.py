@@ -130,16 +130,19 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
 
     No User Exists or
     Password is incorrect or
-    JSON Web Token to authenticate user
+    JSON Web Token to authenticate user and port to connect via websockets
     """
     user_info = Session.query(UserInfo).filter(UserInfo.email == email).first()
     if not user_info:
         return response(Status.Error, f"No user with email: {email}")
     if not bcrypt.checkpw(payload["password"].encode(), user_info.password):
         return response(Status.Failure, f"Password is incorrect")
-    return response(
-        Status.Success, create_jwt(user_info.email, user_info.password, secret).decode()
-    )
+
+    response_payload: Dict[str, Any] = {
+        "token": create_jwt(user_info.email, user_info.password, secret).decode(),
+        "websocket_port": rest._config.websocket_port,
+    }
+    return response(Status.Success, response_payload)
 
 
 @rest.route("/user/delete/<handle>/<token>", Method.DELETE)
