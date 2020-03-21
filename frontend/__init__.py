@@ -8,6 +8,7 @@ from .screens import Router
 from .screens.login import Login
 from .screens.create_account import CreateAccount
 from .screens.connect_to_server import ConnectToServer
+from .screens.main import Main
 
 
 def setup_route_function(window: QMainWindow, screen_object: Any) -> None:
@@ -31,6 +32,7 @@ routes: Dict[str, Any] = {
     "/": ConnectToServer,
     "/login": Login,
     "/create/account": CreateAccount,
+    "/main": Main,
 }
 
 app = QApplication(sys.argv)

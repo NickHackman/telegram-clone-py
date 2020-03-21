@@ -18,7 +18,6 @@ EMOTICON_ICON: str = f"{ASSETS}{os.sep}emoticon.svg"
 MENU_ICON: str = f"{ASSETS}{os.sep}menu.svg"
 SEARCH_ICON: str = f"{ASSETS}{os.sep}search.svg"
 SEND_ICON: str = f"{ASSETS}{os.sep}send.svg"
-USER_ICON: str = f"{ASSETS}{os.sep}user.svg"
 BACKARROW_ICON: str = f"{ASSETS}{os.sep}back-arrow.svg"
 
 
