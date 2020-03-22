@@ -1,3 +1,6 @@
+"""
+Message Model
+"""
 from datetime import datetime
 from typing import Dict, Any
 
@@ -7,6 +10,37 @@ from . import Base
 
 
 class Message(Base):
+    """
+    Message Model
+
+    Attributes
+    ----------
+
+    id: int [PK]
+         unique identifier
+
+    reciever_message: String(512)
+         Encrypted message for the Reciever (encrypted with their public_key)
+
+    sender_message: String(512)
+         Encrypted message for the Sender (encrypted with their public_key)
+
+    date: Time
+         Date the message was sent to the server
+
+    edited: Boolean
+         Whether or not the message was editted
+
+    read: Boolean
+         Whether the message was read by the reciever or not
+
+    sender: String(64) [FK]
+         Sender of the message (their handle)
+
+    reciever: String(64) [FK]
+         Reciever of the message (their handle)
+    """
+
     __tablename__ = "Message"
 
     id = db.Column(db.Integer(), primary_key=True, nullable=False)
@@ -20,6 +54,21 @@ class Message(Base):
     reciever = db.Column(db.String(64), db.ForeignKey("User.handle"))
 
     def to_reciever_json(self) -> Dict[str, Any]:
+        """
+        Reciever JSON
+
+        Returns
+        -------
+
+        Dict[str, Any]
+        {
+          "id": self.id,
+          "sender": self.sender,
+          "message": self.reciever_message,
+          "date": self.date,
+          "edited": self.edited
+        }
+        """
         return {
             "id": self.id,
             "sender": self.sender,
@@ -29,9 +78,24 @@ class Message(Base):
         }
 
     def to_sender_json(self) -> Dict[str, Any]:
+        """
+        Sender JSON
+
+        Returns
+        -------
+
+        Dict[str, Any]
+        {
+          "id": self.id,
+          "message": self.reciever_message,
+          "date": self.date,
+          "edited": self.edited,
+          "read": self.read
+        }
+        """
         return {
             "id": self.id,
-            "sender_message": self.sender_message,
+            "message": self.sender_message,
             "date": self.date,
             "edited": self.edited,
             "read": self.read,

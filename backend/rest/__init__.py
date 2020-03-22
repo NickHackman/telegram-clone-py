@@ -1,3 +1,8 @@
+"""
+Rest
+
+An implemention of Restful Routes similar to and inspired by Flask
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -95,6 +100,15 @@ class Rest:
             config_print(self._config)
 
     def set_ws_fn(self, ws_fun: Callable[..., Awaitable[None]] = None) -> None:
+        """
+        Sets the Websocket function
+
+        Parameters
+        ----------
+
+        ws_fun: Callable[..., Awaitable[None]] = None
+             Async function that is called by the websocket server
+        """
         self._websocket_fun = ws_fun
 
     def route(self, route_str: str, method: Method) -> Callable[..., Dict[Any, Any]]:
@@ -113,7 +127,8 @@ class Rest:
         -------
 
         Callable[[str, Method], Any]
-             Function that takes a route_str and a type and returns a dict that's JSON serializable
+             Function that takes a route_str and a type and returns
+             a dict that's JSON serialize
 
         Examples
         --------
@@ -131,7 +146,7 @@ class Rest:
             (route_pattern, types) = self._parse_route(route_str)
             self._routes.append((route_pattern, method, types, fun))
             if self._config.mode is Mode.Debug:
-                add_route_print(route_str, fun)
+                add_route_print(route_str, method, fun)
             return fun
 
         return decorator

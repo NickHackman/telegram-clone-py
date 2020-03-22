@@ -1,3 +1,6 @@
+"""
+Contains all printing and logging funcionality
+"""
 from typing import Callable
 
 from colorama import Fore, Style  # type: ignore
@@ -5,7 +8,7 @@ from colorama import Fore, Style  # type: ignore
 from .config import Config
 
 
-def add_route_print(path: str, fun: Callable) -> None:
+def add_route_print(path: str, method, fun: Callable) -> None:
     """
     Prints every loaded Route to the console
 
@@ -18,7 +21,16 @@ def add_route_print(path: str, fun: Callable) -> None:
     fun: Callable
          Function the route calls
     """
-    print(f"➕ {Style.BRIGHT + 'route'}: '{path}' -> {fun.__name__}")
+    method_print: str = ""
+    if method.value == "DELETE":
+        method_print = f"{Fore.RED}{method.value}{Fore.RESET}"
+    elif method.value == "POST":
+        method_print = f"{Fore.GREEN}{method.value}{Fore.RESET}"
+    elif method.value == "PUT":
+        method_print = f"{Fore.YELLOW}{method.value}{Fore.RESET}"
+    else:
+        method_print = f"{Fore.BLUE}{method.value}{Fore.RESET}"
+    print(f"➕ {Style.BRIGHT + 'route'}: {method_print} '{path}' -> {fun.__name__}")
 
 
 def config_print(config: Config) -> None:

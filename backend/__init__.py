@@ -1,3 +1,9 @@
+"""
+Contains all components for the Backend of Telegram-clone-py
+
+This file contains all HTTP Restful Routes
+"""
+
 import os
 from pathlib import Path
 from typing import Dict, Any, List
@@ -6,7 +12,7 @@ import bcrypt  # type: ignore
 import jwt
 
 from .rest import Rest, Method  # type: ignore
-from .models import Session, User, UserInfo  # type: ignore
+from .models import Session, User, UserInfo
 from .response import response, Status  # type: ignore
 from .util import create_jwt, send_verification_email  # type: ignore
 from .websocket import WebsocketMessaging

@@ -1,3 +1,6 @@
+"""
+Functions related to constructing HTTP headers
+"""
 from typing import Final, Dict, Any
 
 import json
