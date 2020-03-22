@@ -92,7 +92,6 @@ class Main(object):
             list_item.setSizeHint(widget.sizeHint())
             self.listWidget.addItem(list_item)
             self.listWidget.setItemWidget(list_item, widget)
-        self.listWidget.itemClicked.connect(Chat.selected)
         self.verticalLayout.addWidget(self.listWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.dockWidget.setWidget(self.dockWidgetContents)

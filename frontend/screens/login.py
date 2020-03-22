@@ -142,11 +142,12 @@ class Login(object):
             self.login_button.setEnabled(True)
             return
 
-        payload: Dict[str, Any] = {"password": password}
+        payload: Dict[str, Any] = {"email": email, "password": password}
         url: str = self.router.state["url"]
-        response = requests.post(f"{url}/login/{email}", json.dumps(payload))
+        response = requests.post(f"{url}/login", json.dumps(payload))
         if response.json["status"] == "success":
-            self.router.set_state("jwt", response.json["response"])
+            self.router.set_state("jwt", response.json["response"]["token"])
+            self.router.set_state("websocket_port", response.json["response"]["token"])
             self.router.push("/main", window)
         else:
             self.error_message.setText(response.json["response"])

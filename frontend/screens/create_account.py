@@ -205,7 +205,7 @@ class CreateAccount(object):
         }
 
         url: str = self.router.state["url"]
-        response = requests.post(f"{url}/create/user", json.dumps(payload))
+        response = requests.post(f"{url}/user", json.dumps(payload))
         if response.json["status"] == "success":
             self.router.push("/login", window)
         else:

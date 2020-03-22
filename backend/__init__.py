@@ -21,7 +21,7 @@ ws_msging: WebsocketMessaging = WebsocketMessaging(secret, Session)
 rest.set_ws_fn(ws_msging.start)
 
 
-@rest.route("/create/user", Method.POST)
+@rest.route("/user", Method.POST)
 def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Creates a User from POST payload
@@ -108,8 +108,8 @@ def resend_email_verificaiton(
         return response(Status.Error, "Invalid Token")
 
 
-@rest.route("/login/<email>", Method.POST)
-def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+@rest.route("/login", Method.POST)
+def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Logins in a User
 
@@ -120,7 +120,11 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
          Email for User
 
     payload: Dict[Any, Any]
-         Payload sent as {"password": "password_here"}
+         Payload as
+         {
+          "email": "email_here",
+          "password": "password_here"
+         }
 
     Returns
     -------
@@ -129,6 +133,7 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     Password is incorrect or
     JSON Web Token to authenticate user and port to connect via websockets
     """
+    email: str = payload["email"]
     user_info = Session.query(UserInfo).filter(UserInfo.email == email).first()
     if not user_info:
         return response(Status.Error, f"No user with email: {email}")
@@ -142,8 +147,8 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     return response(Status.Success, response_payload)
 
 
-@rest.route("/user/delete/<handle>/<token>", Method.DELETE)
-def delete_user(handle: str, token: str) -> Dict[Any, Any]:
+@rest.route("/user/<handle>", Method.DELETE)
+def delete_user(handle: str, payload: Dict[any, any]) -> Dict[Any, Any]:
     """
     Deletes a User
 
@@ -153,7 +158,7 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
     handle: str
          Email of User to delete
 
-    token: str
+    payload: Dict[any, any]
          JWT to authenticate User
 
     Returns
@@ -168,7 +173,7 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
     try:
-        json = jwt.decode(token, secret, algorithms=["HS256"])
+        json = jwt.decode(payload["token"], secret, algorithms=["HS256"])
         if json["email"] != user.info.email and json["password"] == user.info.password:
             return response(Status.Error, "Invalid token")
         Session.delete(user)
@@ -178,8 +183,8 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
         return response(Status.Error, "Failed to validate token")
 
 
-@rest.route("/update/user/<handle>/<token>", Method.PUT)
-def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+@rest.route("/user/<handle>", Method.PUT)
+def update_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Updates a User
 
@@ -196,6 +201,7 @@ def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, A
          Payload of the form
          {
           "handle": "handle_here",
+          "token": "token_here",
           "info": {
             "password": "password_here",
             "handle": "handle_here",
@@ -214,7 +220,7 @@ def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, A
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
     try:
-        jwt.decode(token, secret, algorithms=["HS256"])
+        jwt.decode(payload["token"], secret, algorithms=["HS256"])
     except jwt.DecodeError:
         return response(Status.Error, "Failed to validate token")
     user.update(payload)
@@ -271,7 +277,7 @@ def verify_email(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, 
     return response(Status.Success, "Successfully verified email")
 
 
-@rest.route("/list/users", Method.GET)
+@rest.route("/users", Method.GET)
 def list_users() -> Dict[Any, Any]:
     """
     Lists all Users by Handle
