@@ -1,42 +1,40 @@
+import re
+from typing import List, Pattern
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from . import Router, MENU_ICON
 from ..components.chat import Chat
+from ..components.chat_window import ChatWindow
+
+from .. import requests
+from ..thread import QtThread
 
 
 items = [
     {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Erik", "date": "Now", "message": "Erik: I use Arch Btw"},
-    {"name": "Sarah", "date": "Now", "message": "You: Hi"},
+    {"name": "Sarah", "date": "Now", "message": "You: I love you"},
 ]
 
 
 class Main(object):
     def __init__(self, router: Router):
         self.router = router
+        self.chats = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1047, 764)
         MainWindow.setStyleSheet("background-color: rgb(14, 22, 33);")
         MainWindow.setStatusBar(None)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.centralwidget)
+        central_widget = QtWidgets.QWidget()
+        chat_window = ChatWindow()
+        chat_window.setupUi(central_widget)
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(central_widget)
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        MainWindow.setCentralWidget(self.centralwidget)
+        MainWindow.setCentralWidget(central_widget)
         self.dockWidget = QtWidgets.QDockWidget(MainWindow)
         self.dockWidget.setStyleSheet("background-color: rgb(23, 33, 43);")
         self.dockWidget.setFloating(False)
@@ -104,3 +102,27 @@ class Main(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.lineEdit.setPlaceholderText(_translate("MainWindow", " Search"))
+
+    def search_update_cb(self, regex: Pattern[str]) -> None:
+        url: str = self.router.state["url"]
+        response = requests.get(f"{url}/users")
+        users: List[str] = response.json["response"]
+        print(users)
+        for user in users:
+            if not regex.match(user):
+                continue
+            list_item = QtWidgets.QListWidgetItem(self.listWidget)
+            widget = QtWidgets.QWidget()
+            chat = Chat({"name": user, "date": "", "message": ""})
+            chat.setupUi(widget)
+            list_item.setSizeHint(widget.sizeHint())
+            self.listWidget.addItem(list_item)
+            self.listWidget.setItemWidget(list_item, widget)
+
+    def _search(self, text: str) -> None:
+        try:
+            REGEX = re.compile(text)
+        except re.error:
+            return
+        thread = Thread(target=lambda: self.search_update_cb(REGEX))
+        thread.start()
