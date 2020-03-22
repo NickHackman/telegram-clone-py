@@ -40,14 +40,14 @@ class Config:
         log_file: str,
         mode: str,
         secret: str,
-        websock_port: int,
+        websocket_port: int,
     ):
         self.host = host
         self.port = port
         self.log_file = log_file
         self.mode = Mode(mode)
         self.secret = secret
-        self.websocket_port = websock_port
+        self.websocket_port = websocket_port
 
     @staticmethod
     def load_from_file(path: Union[Path, str]) -> Config:
