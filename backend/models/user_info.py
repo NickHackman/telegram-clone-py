@@ -7,7 +7,7 @@ from . import Base
 
 
 class UserInfo(Base):
-    __tablename__ = "userinfo"
+    __tablename__ = "UserInfo"
     """
     User Db Model
 
@@ -21,13 +21,12 @@ class UserInfo(Base):
     password: str
     """
 
+    handle = db.Column(db.String(64), db.ForeignKey("User.handle"))
     email = db.Column(db.String(255), primary_key=True)
     bio = db.Column(db.String(144))
     public_key = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     verified = db.Column(db.Boolean, default=False)
-
-    users = relationship("User", back_populates="userinfo")
 
     def __repr__(self) -> str:
         return f"<UserInfo {self.email}>"

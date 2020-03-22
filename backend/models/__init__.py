@@ -18,6 +18,7 @@ Base.metadata.bind = engine
 
 from .user import User
 from .user_info import UserInfo
+from .message import Message
 
 
 Base.metadata.create_all()
