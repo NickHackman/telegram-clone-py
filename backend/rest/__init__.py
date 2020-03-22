@@ -82,41 +82,20 @@ class Rest:
     _routes: List[
         Tuple[Pattern[str], Method, List[Type], Callable[..., Dict[Any, Any]]]
     ]
-    _websockets: List[Callable[..., Awaitable[None]]]
+    _websocket_fun: Optional[Callable[..., Awaitable[None]]] = None
     _config: Config
 
-    def __init__(self, config_path: Union[str, Path]):
+    def __init__(
+        self, config_path: Union[str, Path],
+    ):
         self._routes = []
         self._config = Config.load_from_file(config_path)
         if self._config.mode is Mode.Debug:
             init(autoreset=True)
             config_print(self._config)
 
-    def websocket(
-        self,
-    ) -> Callable[[Callable[..., Awaitable[None]]], Callable[..., Awaitable[None]]]:
-        """
-        Websocket decorator calls function when the websocket has activity
-
-        Websocket functions must not return anything and MUST be async
-
-        Examples
-        --------
-
-        @rest.websocket()
-        async def ws(websocket: websockets.WebSocketServerProtocol, path: str) -> None:
-             websocket.send("Hello")
-        """
-
-        def decorator(
-            fun: Callable[..., Awaitable[None]]
-        ) -> Callable[..., Awaitable[None]]:
-            self._websockets.append(fun)
-            if self._config.mode is Mode.Debug:
-                add_route_print("Websocket", fun)
-            return fun
-
-        return decorator
+    def set_ws_fn(self, ws_fun: Callable[..., Awaitable[None]] = None) -> None:
+        self._websocket_fun = ws_fun
 
     def route(self, route_str: str, method: Method) -> Callable[..., Dict[Any, Any]]:
         """
@@ -213,8 +192,8 @@ class Rest:
         async def handle_websocket(
             websocket: websockets.WebSocketServerProtocol, path: str
         ) -> None:
-            for fun in self._websockets:
-                fun(websocket, path)
+            if self._websocket_fun:
+                await self._websocket_fun(websocket, path)
             return None
 
         event_loop = asyncio.get_event_loop()

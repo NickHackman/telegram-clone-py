@@ -5,16 +5,20 @@ from typing import Dict, Any, List
 import bcrypt  # type: ignore
 import jwt
 
-from rest import Rest, Method  # type: ignore
-from models import Session, User, UserInfo  # type: ignore
-from response import response, Status  # type: ignore
-from util import create_jwt, send_verification_email  # type: ignore
+from .rest import Rest, Method  # type: ignore
+from .models import Session, User, UserInfo  # type: ignore
+from .response import response, Status  # type: ignore
+from .util import create_jwt, send_verification_email  # type: ignore
+from .websocket import WebsocketMessaging
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
-rest: Rest = Rest(CONFIG_PATH)
 
+rest: Rest = Rest(CONFIG_PATH)
 secret = rest.get_secret()
+
+ws_msging: WebsocketMessaging = WebsocketMessaging(secret, Session)
+rest.set_ws_fn(ws_msging.start)
 
 
 @rest.route("/create/user", Method.POST)
@@ -46,13 +50,11 @@ def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
         public_key=bytes(payload["public_key"].encode()),
         password=bcrypt.hashpw(payload["password"].encode(), bcrypt.gensalt()),
     )
-    user = User(handle=payload["handle"], userinfo=user_info)
+    user = User(handle=payload["handle"], info=user_info)
     send_verification_email(
-        user.userinfo.email,
+        user.info.email,
         rest.get_url(),
-        create_jwt(
-            user.userinfo.email, user.userinfo.password, secret, 24 * 7
-        ).decode(),
+        create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
     )
     Session.add(user_info)
     Session.add(user)
@@ -94,17 +96,12 @@ def resend_email_verificaiton(
         return response(Status.Error, f"No User with handle: {handle}")
     try:
         json = jwt.decode(token, secret, algorithms=["HS256"])
-        if (
-            json["email"] != user.userinfo.email
-            and json["password"] == user.userinfo.password
-        ):
+        if json["email"] != user.info.email and json["password"] == user.info.password:
             return response(Status.Error, "Invalid token")
         send_verification_email(
-            user.userinfo.email,
+            user.info.email,
             rest.get_url(),
-            create_jwt(
-                user.userinfo.email, user.userinfo.password, secret, 24 * 7
-            ).decode(),
+            create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
         )
         return response(Status.Success, "Verification email sent")
     except jwt.DecodeError:
@@ -172,10 +169,7 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
         return response(Status.Failure, f"No User with handle: {handle}")
     try:
         json = jwt.decode(token, secret, algorithms=["HS256"])
-        if (
-            json["email"] != user.userinfo.email
-            and json["password"] == user.userinfo.password
-        ):
+        if json["email"] != user.info.email and json["password"] == user.info.password:
             return response(Status.Error, "Invalid token")
         Session.delete(user)
         Session.commit()
@@ -272,7 +266,7 @@ def verify_email(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, 
     except jwt.DecodeError:
         return response(Status.Error, "Failed to validate token")
     user = Session.query(User).filter(User.handle == handle).first()
-    user.userinfo.verified = True
+    user.info.verified = True
     Session.commit()
     return response(Status.Success, "Successfully verified email")
 
