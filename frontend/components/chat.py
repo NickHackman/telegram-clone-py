@@ -1,66 +1,49 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from . import USER_ICON
 
 
-class Chat(object):
+class Chat(QtWidgets.QWidget):
     def __init__(self, values):
-        self._name = values["name"]
-        self._date = values["date"]
-        self._message = values["message"]
+        QtWidgets.QWidget.__init__(self)
 
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.setStyleSheet("background-color: rgb(23, 33, 43);")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(Form)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButton = QtWidgets.QPushButton(Form)
-        self.pushButton.setEnabled(False)
-        self.pushButton.setMaximumSize(QtCore.QSize(45, 45))
-        self.pushButton.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(
-            QtGui.QPixmap(USER_ICON), QtGui.QIcon.Normal, QtGui.QIcon.Off,
-        )
-        self.pushButton.setIcon(icon)
-        self.pushButton.setIconSize(QtCore.QSize(45, 45))
-        self.pushButton.setFlat(True)
-        self.pushButton.setObjectName("pushButton")
-        self.horizontalLayout.addWidget(self.pushButton)
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.name = QtWidgets.QLabel(Form)
-        self.name.setStyleSheet("color: rgb(255, 255, 255);")
-        self.name.setObjectName("name")
-        self.name.setText(self._name)
-        self.horizontalLayout_3.addWidget(self.name)
-        self.date = QtWidgets.QLabel(Form)
-        self.date.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.date.setStyleSheet("color: rgb(255, 255, 255);")
-        self.date.setAlignment(
+        name = values["name"]
+        date = values["date"]
+        message = values["message"]
+
+        self.setStyleSheet("background-color: rgb(23, 33, 43);")
+        h_layout = QtWidgets.QHBoxLayout(self)
+        h_layout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        h_layout.setContentsMargins(0, 0, 10, 0)
+
+        icon = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(USER_ICON)), "", self)
+        icon.setEnabled(False)
+        icon.setMaximumSize(QtCore.QSize(45, 45))
+        icon.setIconSize(QtCore.QSize(45, 45))
+        icon.setFlat(True)
+
+        h_layout.addWidget(icon)
+
+        v_layout = QtWidgets.QVBoxLayout()
+
+        inner_h_layout = QtWidgets.QHBoxLayout()
+        name_widget = QtWidgets.QLabel(name, self)
+        name_widget.setStyleSheet("color: rgb(255, 255, 255)")
+
+        inner_h_layout.addWidget(name_widget)
+
+        date_widget = QtWidgets.QLabel(date, self)
+        date_widget.setStyleSheet("color: rgb(255, 255, 255)")
+        date_widget.setLayoutDirection(QtCore.Qt.LeftToRight)
+        date_widget.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
         )
-        self.date.setObjectName("date")
-        self.date.setText(self._date)
-        self.horizontalLayout_3.addWidget(self.date)
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
-        self.message = QtWidgets.QLabel(Form)
-        self.message.setStyleSheet("color: rgb(255, 255, 255);")
-        self.message.setObjectName("message")
-        self.message.setText(self._message)
-        self.verticalLayout.addWidget(self.message)
-        self.horizontalLayout.addLayout(self.verticalLayout)
-        self.horizontalLayout_2.addLayout(self.horizontalLayout)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        inner_h_layout.addWidget(date_widget)
+        v_layout.addLayout(inner_h_layout)
 
-    def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        message_widget = QtWidgets.QLabel(message, self)
+        message_widget.setStyleSheet("color: rgb(255, 255, 255)")
+
+        v_layout.addWidget(message_widget)
+        h_layout.addLayout(v_layout)
