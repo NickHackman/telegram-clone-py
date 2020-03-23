@@ -333,28 +333,24 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
          Payload of all their messages
          where the other user's handle is the key followed by a List of messages
     """
-    try:
-        payload: Dict[str, List[Dict[str, str]]] = {}
+    payload: Dict[str, List[Dict[str, str]]] = {}
 
-        token_data = jwt.decode(token, secret, algorithms=["HS256"])
-        user = Session.query(User).filter(User.handle == handle).first()
-        if not validate_user(user.info, token_data):
-            return response(Status.Error, "Failed to validate token")
-        messages: List[Message] = Session.query(Message).filter(
-            Message.sender == handle or Message.reciever == handle
-        ).all()
-        for msg in messages:
-            if msg.sender == handle and not msg.reciever in payload:
-                payload[msg.reciever] = []
-            elif msg.reciever == handle and not msg.sender in payload:
-                payload[msg.sender] = []
-            if msg.sender == handle:
-                payload[msg.reciever] = msg.to_sender_json()
-            else:
-                payload[msg.sender] = msg.to_reciever_json()
-        return response(Status.Success, payload)
-    except jwt.DecodeError:
+    user = Session.query(User).filter(User.handle == handle).first()
+    if not validate_user(user.info, token):
         return response(Status.Error, "Failed to validate token")
+    messages: List[Message] = Session.query(Message).filter(
+        Message.sender == handle or Message.reciever == handle
+    ).all()
+    for msg in messages:
+        if msg.sender == handle and not msg.reciever in payload:
+            payload[msg.reciever] = []
+        elif msg.reciever == handle and not msg.sender in payload:
+            payload[msg.sender] = []
+        if msg.sender == handle:
+            payload[msg.reciever] = msg.to_sender_json()
+        else:
+            payload[msg.sender] = msg.to_reciever_json()
+    return response(Status.Success, payload)
 
 
 @rest.route("/is/telegram-clone-server", Method.GET)
