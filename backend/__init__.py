@@ -49,7 +49,7 @@ def validate_user(info: UserInfo, token: str) -> bool:
     try:
         data = jwt.decode(token, secret, algorithms=["HS256"])
         return data["email"] == info.email and data["password"] == info.password
-    except jwt.DecodeError:
+    except (jwt.DecodeError, jwt.exceptions.ExpiredSignatureError):
         return False
 
 
