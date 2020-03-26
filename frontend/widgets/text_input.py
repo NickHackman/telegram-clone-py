@@ -83,7 +83,7 @@ class TextInput(QtWidget):
     validator: Pattern[str] = None
          Regular Expression to apply to Input
 
-    parent: QtCore.QObject = None
+    parent: QtWidgets.QWidget = None
          Parent Qt Object
 
     echo: Echo = Echo.Normal
@@ -116,7 +116,7 @@ class TextInput(QtWidget):
         *,
         max_length: int = 144,
         validator: str = None,
-        parent: QtCore.QObject = None,
+        parent: QtWidgets.QWidget = None,
         echo: Echo = Echo.Normal,
         align: HorizontalAlign = HorizontalAlign.Left,
         editing_finished: Callable[..., None] = None,
@@ -136,9 +136,9 @@ class TextInput(QtWidget):
             )
         self.line_edit.setAlignment(align.value)
         if text_changed:
-            self.line_edit.textChanged(text_changed)
+            self.line_edit.textChanged.connect(text_changed)
         if editing_finished:
-            self.line_edit.editingFinished(editing_finished)
+            self.line_edit.editingFinished.connect(editing_finished)
         self.line_edit.setReadOnly(read_only)
         self.line_edit.setStyleSheet(STYLESHEET)
         self.line_edit.setClearButtonEnabled(clear_button)

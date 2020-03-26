@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets  # type: ignore
+from PyQt5 import QtWidgets  # type: ignore
 
 from .qtwidget import QtWidget
 
@@ -16,11 +16,11 @@ class Spacer(QtWidget):
     height: int
           Height of spacer
 
-    parent: QtCore.QObject = None
+    parent: QtWidgets.QWidget = None
           Parent Widget
     """
 
-    def __init__(self, width: int, height: int, *, parent: QtCore.QObject = None):
+    def __init__(self, width: int, height: int, *, parent: QtWidgets.QWidget = None):
         super(Spacer, self).__init__(parent)
         layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
         spacer: QtWidgets.QSpacerItem = QtWidgets.QSpacerItem(width, height)

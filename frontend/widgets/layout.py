@@ -4,12 +4,12 @@ Layout
 A wrapper around QVBoxLayout and QHBoxLayout
 """
 from enum import Enum
-from typing import List, Union, Tuple
+from typing import Any, List, Tuple
 
 from PyQt5 import QtCore, QtWidgets  # type: ignore
 
-from .qtwidget import QtWidget
 from .alignment import HorizontalAlign, VerticalAlign
+from .qtwidget import QtWidget
 
 
 class Direction(Enum):
@@ -31,16 +31,14 @@ class Direction(Enum):
 
 
 class Layout(QtWidget):
-    layout: Union[QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout]
-
     def __init__(
         self,
         *,
-        widgets: List[QtWidgets.QWidget] = [],
+        widgets: List[QtWidget] = [],
         direction: Direction = Direction.Vertical,
         v_align: VerticalAlign = None,
         h_align: HorizontalAlign = None,
-        parent: QtCore.QObject = None,
+        parent: QtWidgets.QWidget = None,
         spacing: int = None,
         geometry: Tuple[int, int, int, int] = None,
     ):
@@ -52,7 +50,7 @@ class Layout(QtWidget):
         Parameters
         ----------
 
-        widgets: List[QtWidgets.QWidget] = []
+        widgets: List[QtWidget] = []
               List of widgets
 
         direction: Direction = Direction.Vertical
@@ -64,7 +62,7 @@ class Layout(QtWidget):
         h_align: HorizontalAlign = None
               Horizontal Alignment for Layout
 
-        parent: QtCore.QObject = None
+        parent: QtWidgets.QWidget = None
               Parent widget
 
         spacing: int = None
@@ -74,9 +72,7 @@ class Layout(QtWidget):
               Position of Widget
         """
         super(Layout, self).__init__(parent)
-        self.layout: Union[
-            QtWidgets.QHBoxLayout, QtWidgets.QVBoxLayout
-        ] = direction.value()
+        self.layout: Any = direction.value()
         if v_align and h_align:
             self.layout.setAlignment(h_align.value | v_align.value)
         elif h_align:

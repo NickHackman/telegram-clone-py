@@ -21,7 +21,7 @@ class Text(QtWidget):
     text: str
         Text to display
 
-    parent: QtCore.QObject = None
+    parent: QtWidgets.QWidget = None
         Parent Widget
 
     indent: int = 0
@@ -43,7 +43,7 @@ class Text(QtWidget):
         self,
         text: str,
         *,
-        parent: QtCore.QObject = None,
+        parent: QtWidgets.QWidget = None,
         indent: int = 0,
         geometry: Tuple[int, int, int, int] = None,
         margin: int = 0,
