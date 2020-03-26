@@ -2,12 +2,44 @@ from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from .. import requests
 from ..requests.response import HTTPError
-from . import Router, TELEGRAM_ICON, BACKARROW_ICON
+from ..widgets import (
+    Button,
+    Direction,
+    Form,
+    FormEntry,
+    HorizontalAlign,
+    Icon,
+    Layout,
+    Text,
+    TextInput,
+    VerticalAlign,
+    button_icon,
+)
+from . import TELEGRAM_ICON, Router
 
 
-class ConnectToServer(object):
+class ConnectToServer(QtWidgets.QMainWindow):
     def __init__(self, router: Router):
-        self.router = router
+        super(ConnectToServer, self).__init__()
+        self.router: Router = router
+        self.resize(500, 650)
+        self.setStyleSheet("background-color: rgb(14, 22, 33);")
+        central_widget = QtWidgets.QWidget(self)
+
+        self.url_input = TextInput("Url")
+        self.port_input = TextInput("Port", validator="\d+")
+        layout: Layout = Layout(
+            # h_align=HorizontalAlign.Center,
+            widgets=[
+                Icon(TELEGRAM_ICON, width=100, height=100),
+                self.url_input,
+                self.port_input,
+                Text("Hi"),
+                Button("Connect", on_click=self._connect),
+            ],
+        )
+        central_widget.setLayout(layout.layout)
+        self.setCentralWidget(central_widget)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -96,8 +128,8 @@ class ConnectToServer(object):
         On success switches to login screen
         On Failure sets error message
         """
-        url: str = self.url_input.text()
-        port: int = int(self.port_input.text())
+        url = self.url_input.text
+        port: int = int(self.port_input.text)
 
         try:
             response = requests.get(f"{url}:{port}/is/telegram-clone-server")

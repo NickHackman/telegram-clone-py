@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 pyqt5 = "*"
 rsa = "*"
+websockets = "*"
 
 [requires]
 python_version = "3.8"

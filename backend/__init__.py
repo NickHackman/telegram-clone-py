@@ -1,3 +1,9 @@
+"""
+Contains all components for the Backend of Telegram-clone-py
+
+This file contains all HTTP Restful Routes
+"""
+
 import os
 from pathlib import Path
 from typing import Dict, Any, List
@@ -5,19 +11,49 @@ from typing import Dict, Any, List
 import bcrypt  # type: ignore
 import jwt
 
-from rest import Rest, Method  # type: ignore
-from models import Session, User, UserInfo  # type: ignore
-from response import response, Status  # type: ignore
-from util import create_jwt, send_verification_email  # type: ignore
+from .rest import Rest, Method  # type: ignore
+from .models import Session, User, UserInfo, Message
+from .response import response, Status  # type: ignore
+from .util import create_jwt, send_verification_email  # type: ignore
+from .websocket import WebsocketMessaging
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
-rest: Rest = Rest(CONFIG_PATH)
 
+rest: Rest = Rest(CONFIG_PATH)
 secret = rest.get_secret()
 
+ws_msging: WebsocketMessaging = WebsocketMessaging(secret, Session)
+rest.set_ws_fn(ws_msging.start)
 
-@rest.route("/create/user", Method.POST)
+
+def validate_user(info: UserInfo, token: str) -> bool:
+    """
+    Checks if a User's Token is valid
+
+    Parameters
+    ----------
+
+    info: UserInfo
+         UserInfo to check (solely email and password)
+
+    token: str
+         Json Web Token to check
+
+    Returns
+    -------
+
+    True: User is valid
+    False: User is invalid or has expired JWT
+    """
+    try:
+        data = jwt.decode(token, secret, algorithms=["HS256"])
+        return data["email"] == info.email and data["password"] == info.password
+    except (jwt.DecodeError, jwt.ExpiredSignatureError):
+        return False
+
+
+@rest.route("/user", Method.POST)
 def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Creates a User from POST payload
@@ -46,13 +82,11 @@ def create_user(payload: Dict[Any, Any]) -> Dict[Any, Any]:
         public_key=bytes(payload["public_key"].encode()),
         password=bcrypt.hashpw(payload["password"].encode(), bcrypt.gensalt()),
     )
-    user = User(handle=payload["handle"], userinfo=user_info)
+    user = User(handle=payload["handle"], info=user_info)
     send_verification_email(
-        user.userinfo.email,
+        user.info.email,
         rest.get_url(),
-        create_jwt(
-            user.userinfo.email, user.userinfo.password, secret, 24 * 7
-        ).decode(),
+        create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
     )
     Session.add(user_info)
     Session.add(user)
@@ -92,27 +126,18 @@ def resend_email_verificaiton(
     user = Session.query(User).filter(User.handle == handle).first()
     if not user:
         return response(Status.Error, f"No User with handle: {handle}")
-    try:
-        json = jwt.decode(token, secret, algorithms=["HS256"])
-        if (
-            json["email"] != user.userinfo.email
-            and json["password"] == user.userinfo.password
-        ):
-            return response(Status.Error, "Invalid token")
-        send_verification_email(
-            user.userinfo.email,
-            rest.get_url(),
-            create_jwt(
-                user.userinfo.email, user.userinfo.password, secret, 24 * 7
-            ).decode(),
-        )
-        return response(Status.Success, "Verification email sent")
-    except jwt.DecodeError:
-        return response(Status.Error, "Invalid Token")
+    if not validate_user(user.info, token):
+        return response(Status.Error, "Failed to validate token")
+    send_verification_email(
+        user.info.email,
+        rest.get_url(),
+        create_jwt(user.info.email, user.info.password, secret, 24 * 7).decode(),
+    )
+    return response(Status.Success, "Verification email sent")
 
 
-@rest.route("/login/<email>", Method.POST)
-def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+@rest.route("/login", Method.POST)
+def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Logins in a User
 
@@ -123,27 +148,35 @@ def login(email: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
          Email for User
 
     payload: Dict[Any, Any]
-         Payload sent as {"password": "password_here"}
+         Payload as
+         {
+          "email": "email_here",
+          "password": "password_here"
+         }
 
     Returns
     -------
 
     No User Exists or
     Password is incorrect or
-    JSON Web Token to authenticate user
+    JSON Web Token to authenticate user and port to connect via websockets
     """
+    email: str = payload["email"]
     user_info = Session.query(UserInfo).filter(UserInfo.email == email).first()
     if not user_info:
         return response(Status.Error, f"No user with email: {email}")
     if not bcrypt.checkpw(payload["password"].encode(), user_info.password):
         return response(Status.Failure, f"Password is incorrect")
-    return response(
-        Status.Success, create_jwt(user_info.email, user_info.password, secret).decode()
-    )
+
+    response_payload: Dict[str, Any] = {
+        "token": create_jwt(user_info.email, user_info.password, secret).decode(),
+        "websocket_port": rest._config.websocket_port,
+    }
+    return response(Status.Success, response_payload)
 
 
-@rest.route("/user/delete/<handle>/<token>", Method.DELETE)
-def delete_user(handle: str, token: str) -> Dict[Any, Any]:
+@rest.route("/user/<handle>", Method.DELETE)
+def delete_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Deletes a User
 
@@ -153,7 +186,7 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
     handle: str
          Email of User to delete
 
-    token: str
+    payload: Dict[any, any]
          JWT to authenticate User
 
     Returns
@@ -167,22 +200,15 @@ def delete_user(handle: str, token: str) -> Dict[Any, Any]:
     user = Session.query(User).filter(User.handle == handle).first()
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
-    try:
-        json = jwt.decode(token, secret, algorithms=["HS256"])
-        if (
-            json["email"] != user.userinfo.email
-            and json["password"] == user.userinfo.password
-        ):
-            return response(Status.Error, "Invalid token")
-        Session.delete(user)
-        Session.commit()
-        return response(Status.Success, f"Successfully deleted {handle}")
-    except jwt.DecodeError:
+    if not validate_user(user.info, payload["token"]):
         return response(Status.Error, "Failed to validate token")
+    Session.delete(user)
+    Session.commit()
+    return response(Status.Success, f"Successfully deleted {handle}")
 
 
-@rest.route("/update/user/<handle>/<token>", Method.PUT)
-def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+@rest.route("/user/<handle>", Method.PUT)
+def update_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Updates a User
 
@@ -199,6 +225,7 @@ def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, A
          Payload of the form
          {
           "handle": "handle_here",
+          "token": "token_here",
           "info": {
             "password": "password_here",
             "handle": "handle_here",
@@ -216,11 +243,9 @@ def update_user(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, A
     user = Session.query(User).filter(User.handle == handle)
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
-    try:
-        jwt.decode(token, secret, algorithms=["HS256"])
-    except jwt.DecodeError:
+    if not validate_user(user.info, payload["token"]):
         return response(Status.Error, "Failed to validate token")
-    user.update(payload)
+    user.update(payload["info"])
     Session.commit()
     return response(Status.Success, user.to_json())
 
@@ -264,17 +289,15 @@ def verify_email(handle: str, token: str, payload: Dict[Any, Any]) -> Dict[Any, 
     payload: Dict[Any, Any]
          In this case this payload is empty
     """
-    try:
-        jwt.decode(token, secret, algorithms=["HS256"])
-    except jwt.DecodeError:
-        return response(Status.Error, "Failed to validate token")
     user = Session.query(User).filter(User.handle == handle).first()
-    user.userinfo.verified = True
+    if not validate_user(user.info, token):
+        return response(Status.Error, "Failed to validate token")
+    user.info.verified = True
     Session.commit()
     return response(Status.Success, "Successfully verified email")
 
 
-@rest.route("/list/users", Method.GET)
+@rest.route("/users", Method.GET)
 def list_users() -> Dict[Any, Any]:
     """
     Lists all Users by Handle
@@ -287,6 +310,47 @@ def list_users() -> Dict[Any, Any]:
     users: List[User] = Session.query(User).all()
     users_json: List[Dict[str, str]] = [user.handle for user in users]
     return response(Status.Success, users_json)
+
+
+@rest.route("/messages/<handle>/<token>", Method.GET)
+def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
+    """
+    Get all messages sent and recieved for a User organized by other person
+
+    Parameters
+    ----------
+
+    handle: str
+         User's handle
+
+    token: str
+         User's JWT to validate them
+
+    Returns
+    -------
+
+    Dict[Any, Any]
+         Payload of all their messages
+         where the other user's handle is the key followed by a List of messages
+    """
+    payload: Dict[str, List[Dict[str, str]]] = {}
+
+    user = Session.query(User).filter(User.handle == handle).first()
+    if not validate_user(user.info, token):
+        return response(Status.Error, "Failed to validate token")
+    messages: List[Message] = Session.query(Message).filter(
+        Message.sender == handle or Message.reciever == handle
+    ).all()
+    for msg in messages:
+        if msg.sender == handle and msg.reciever not in payload:
+            payload[msg.reciever] = []
+        elif msg.reciever == handle and msg.sender not in payload:
+            payload[msg.sender] = []
+        if msg.sender == handle:
+            payload[msg.reciever].append(msg.to_sender_json())
+        else:
+            payload[msg.sender].append(msg.to_reciever_json())
+    return response(Status.Success, payload)
 
 
 @rest.route("/is/telegram-clone-server", Method.GET)

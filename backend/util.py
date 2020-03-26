@@ -1,3 +1,12 @@
+"""
+Utility File
+
+create_jwt
+     Create a JSON Web Token
+
+send_verification_email
+     Use SMTP to send an email
+"""
 import datetime
 import smtplib
 

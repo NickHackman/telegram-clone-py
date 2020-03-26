@@ -177,6 +177,28 @@ class CreateAccount(object):
         strip_header_footer = public_key[31:-29]
         return "".join(strip_header_footer.split())
 
+    @staticmethod
+    def _save_privkey(handle: str, url: str, privkey: rsa.PrivateKey) -> None:
+        """
+        Saves PEM Private Key in current directory
+
+        in the form of {handle}_{server_url}_privkey.pem
+
+        Parameters
+        -----------
+
+        handle: str
+             User handle
+
+        url: str
+             Server URL
+
+        privkey: rsa.PrivateKey
+            Private Key to store in a file
+        """
+        with open(f".{os.sep}{handle}_{url}_privkey.pem", "w+") as file:
+            file.write(privkey.save_pkcs1())
+
     def _create_account(self, window) -> None:
         """
         Creates an Account with provided fields
@@ -205,7 +227,11 @@ class CreateAccount(object):
         }
 
         url: str = self.router.state["url"]
-        response = requests.post(f"{url}/create/user", json.dumps(payload))
+
+        # Save privkey in a file
+        self._save_privkey(handle, url, privkey)
+
+        response = requests.post(f"{url}/user", json.dumps(payload))
         if response.json["status"] == "success":
             self.router.push("/login", window)
         else:

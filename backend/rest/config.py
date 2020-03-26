@@ -1,3 +1,6 @@
+"""
+Contains Config dataclass and Modes for Rest Server
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -26,18 +29,52 @@ class Mode(Enum):
 
 @dataclass
 class Config:
+    """
+    Config dataclass that stores all data specific to running the Rest Server
+    """
+
     host: str
     port: int
     log_file: str
     secret: str
+    websocket_port: int
     mode: Mode = Mode.Debug
 
-    def __init__(self, host: str, port: int, log_file: str, mode: str, secret: str):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        log_file: str,
+        mode: str,
+        secret: str,
+        websocket_port: int,
+    ):
+        """
+        Constructs a Config
+
+        Parameters
+        ----------
+
+        host: str
+             Host portion of URL to host on
+        port: int
+             Port number to host on
+        log_file: str
+             Location of log file
+        mode: str
+             Mode either debug or production
+        secret: str
+             Secret code
+        websocket_port: int
+             Port for websocket must be different than port
+
+        """
         self.host = host
         self.port = port
         self.log_file = log_file
         self.mode = Mode(mode)
         self.secret = secret
+        self.websocket_port = websocket_port
 
     @staticmethod
     def load_from_file(path: Union[Path, str]) -> Config:
