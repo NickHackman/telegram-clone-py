@@ -3,10 +3,12 @@ QLabel as an Icon
 """
 from typing import Tuple
 
-from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+from PyQt5 import QtCore, QtSvg  # type: ignore
+
+from .qtwidget import QtWidget
 
 
-class Icon(QtWidgets.QWidget):
+class Icon(QtWidget):
     """
     Wrapper around QLabel
 
@@ -32,7 +34,7 @@ class Icon(QtWidgets.QWidget):
         Whether to scale the image or not
     """
 
-    icon_label: QtWidgets.QLabel
+    icon: QtSvg.QSvgWidget
 
     def __init__(
         self,
@@ -45,9 +47,7 @@ class Icon(QtWidgets.QWidget):
         scaled: bool = True,
     ):
         super(Icon, self).__init__(parent)
-        self.icon_label = QtWidgets.QLabel(self)
-        self.icon_label.setPixmap(QtGui.QPixmap(icon_path))
-        self.icon_label.setScaledContents(scaled)
-        self.icon_label.setStyleSheet(f"width: {width};\n" f"height: {height};")
+        self.icon = QtSvg.QSvgWidget(icon_path, self)
+        self.icon.setMaximumSize(width, height)
         if geometry:
-            self.icon_label.setGeometry(*geometry)
+            self.icon.setGeometry(QtCore.QRect(*geometry))

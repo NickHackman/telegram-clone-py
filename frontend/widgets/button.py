@@ -19,6 +19,8 @@ from typing import Callable, Tuple, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
+from .qtwidget import QtWidget
+
 
 def button_icon(icon_path: str) -> QtGui.QIcon:
     """
@@ -39,7 +41,7 @@ def button_icon(icon_path: str) -> QtGui.QIcon:
     return QtGui.QIcon(QtGui.QPixmap(icon_path))
 
 
-class Button(QtWidgets.QWidget):
+class Button(QtWidget):
     """
     Wrapper around QPushButton
 
@@ -63,9 +65,6 @@ class Button(QtWidgets.QWidget):
 
     parent: QtCore.QObject = None
           Parent widget
-
-    font: Tuple[str, int] = ("Arial", 12)
-          Font to use for Button
     """
 
     button: QtWidgets.QPushButton
@@ -79,13 +78,16 @@ class Button(QtWidgets.QWidget):
         enabled: bool = True,
         geometry: Tuple[int, int, int, int] = None,
         parent: QtCore.QObject = None,
-        font: Tuple[str, int] = ("Arial", 12)
     ):
         super(Button, self).__init__(parent)
-        self.button = QtWidgets.QPushButton(inner, self)
+        if isinstance(inner, QtGui.QIcon):
+            self.button = QtWidgets.QPushButton(inner, "", self)
+        else:
+            self.button = QtWidgets.QPushButton(inner, self)
         self.button.setFlat(flat)
-        self.button.setFont(*font)
         if geometry:
-            self.button.setGeometry(*geometry)
+            self.button.setGeometry(QtCore.QRect(*geometry))
         if on_click:
             self.button.clicked.connect(on_click)
+        self.button.setEnabled(enabled)
+        self.button.setIconSize(QtCore.QSize(100, 100))

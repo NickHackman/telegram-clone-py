@@ -5,12 +5,13 @@ Wrapper around QLabel
 """
 from typing import Tuple
 
-from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+from PyQt5 import QtCore, QtWidgets  # type: ignore
 
-from .alignment import Align
+from .alignment import VerticalAlign, HorizontalAlign
+from .qtwidget import QtWidget
 
 
-class Text(QtWidgets.QWidget):
+class Text(QtWidget):
     """
     Wrapper around QLabel
 
@@ -46,10 +47,29 @@ class Text(QtWidgets.QWidget):
         indent: int = 0,
         geometry: Tuple[int, int, int, int] = None,
         margin: int = 0,
-        align: Align = Align.Left,
+        h_align: HorizontalAlign = HorizontalAlign.Left,
+        v_align: VerticalAlign = VerticalAlign.BaseLine
     ):
         super(Text, self).__init__(parent)
-        self.label = QtWidgets.QLabel(text, self)
+        self.label = QtWidgets.QLabel(text)
         self.label.setIndent(indent)
         self.label.setMargin(margin)
-        self.label.setAlignment(align.value)
+        self.label.setAlignment(h_align.value | v_align.value)
+        layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout(self)
+        if geometry:
+            self.label.setGeometry(QtCore.QRect(*geometry))
+        self.label.setStyleSheet("color: rgb(255, 255, 255);")
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+    def set_text(self, text: str) -> None:
+        """
+        Sets Label's Text
+
+        Parameters
+        ----------
+
+        text: str
+              New string for label
+        """
+        self.label.setText(text)

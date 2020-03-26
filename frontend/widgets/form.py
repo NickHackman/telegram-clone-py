@@ -12,11 +12,12 @@ Form
 """
 from typing import List, Tuple
 
-from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+from PyQt5 import QtCore, QtWidgets  # type: ignore
 
+from .alignment import HorizontalAlign, VerticalAlign
 from .text import Text
 from .text_input import TextInput
-from .alignment import Align
+from .qtwidget import QtWidget
 
 
 class FormEntry:
@@ -38,10 +39,10 @@ class FormEntry:
 
     def __init__(self, *, label: Text, text_input: TextInput):
         self.label = label
-        self.text_input
+        self.text_input = text_input
 
 
-class Form(QtWidgets.QWidget):
+class Form(QtWidget):
     """
     Form
 
@@ -72,23 +73,28 @@ class Form(QtWidgets.QWidget):
         *,
         labeled_inputs: List[FormEntry] = [],
         geometry: Tuple[int, int, int, int] = None,
-        align: Align = Align.Left,
+        v_align: VerticalAlign = VerticalAlign.Center,
+        h_align: HorizontalAlign = HorizontalAlign.Center,
         horizontal_spacing: int = None,
         vertical_spacing: int = None,
         parent: QtCore.QObject = None
     ):
         super(Form, self).__init__(parent)
-        form_layout = QtWidgets.QFormLayout(self)
+        self.form_layout = QtWidgets.QFormLayout(self)
         for index, entry in enumerate(labeled_inputs):
-            form_layout.setWidget(index, QtWidgets.QFormLayout.LabelRole, entry.label)
-            form_layout.setWidget(
+            entry.label.set_parent(self)
+            self.form_layout.setWidget(
+                index, QtWidgets.QFormLayout.LabelRole, entry.label
+            )
+            entry.text_input.set_parent(self)
+            self.form_layout.setWidget(
                 index, QtWidgets.QFormLayout.FieldRole, entry.text_input
             )
         if geometry:
-            form_layout.setGeometry(*geometry)
+            self.setGeometry(QtCore.QRect(*geometry))
         if horizontal_spacing:
-            form_layout.setHorizontalSpacing(horizontal_spacing)
+            self.form_layout.setHorizontalSpacing(horizontal_spacing)
         if vertical_spacing:
-            form_layout.setVerticalSpacing(vertical_spacing)
-        form_layout.setAlignment(align.value)
-        self.setLayout(form_layout)
+            self.form_layout.setVerticalSpacing(vertical_spacing)
+        self.form_layout.setAlignment(v_align.value | h_align.value)
+        self.setLayout(self.form_layout)
