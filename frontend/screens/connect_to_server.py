@@ -128,8 +128,8 @@ class ConnectToServer(QtWidgets.QMainWindow):
         On success switches to login screen
         On Failure sets error message
         """
-        url: str = self.url_input.text()
-        port: int = int(self.port_input.text())
+        url = self.url_input.text
+        port: int = int(self.port_input.text)
 
         try:
             response = requests.get(f"{url}:{port}/is/telegram-clone-server")

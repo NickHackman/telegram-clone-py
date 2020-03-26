@@ -22,7 +22,7 @@ STYLESHEET
        Stylesheet to apply to QLineEdit
 """
 from enum import Enum
-from typing import Callable, Final, Pattern, Tuple
+from typing import Callable, Final, Tuple
 
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
@@ -115,7 +115,7 @@ class TextInput(QtWidget):
         placeholder: str,
         *,
         max_length: int = 144,
-        validator: Pattern[str] = None,
+        validator: str = None,
         parent: QtCore.QObject = None,
         echo: Echo = Echo.Normal,
         align: HorizontalAlign = HorizontalAlign.Left,
