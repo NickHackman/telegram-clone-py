@@ -103,7 +103,6 @@ class Main(QtCore.QObject):
             list_item = QtWidgets.QListWidgetItem(self.listWidget)
             widget = QtWidgets.QWidget()
             chat = Chat({"name": user, "date": "", "message": ""})
-            chat.setupUi(widget)
             list_item.setSizeHint(widget.sizeHint())
             self.listWidget.addItem(list_item)
             self.listWidget.setItemWidget(list_item, widget)
