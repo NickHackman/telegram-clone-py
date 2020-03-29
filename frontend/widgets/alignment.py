@@ -2,27 +2,17 @@
 Alignment
 """
 from enum import Enum
+from typing import Pattern, Callable, Tuple, Final
 
-from PyQt5 import QtCore  # type: ignore
+from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 
-class HorizontalAlign(Enum):
+class Align(Enum):
     """
-    Horizontal Alignment
+    Alignment
     """
 
     Left = QtCore.Qt.AlignLeft
     Right = QtCore.Qt.AlignRight
-    Center = QtCore.Qt.AlignHCenter
+    Center = QtCore.Qt.AlignCenter
     Justify = QtCore.Qt.AlignJustify
-
-
-class VerticalAlign(Enum):
-    """
-    Vertical Alignment
-    """
-
-    Bottom = QtCore.Qt.AlignBottom
-    Center = QtCore.Qt.AlignVCenter
-    Top = QtCore.Qt.AlignTop
-    BaseLine = QtCore.Qt.AlignBaseline

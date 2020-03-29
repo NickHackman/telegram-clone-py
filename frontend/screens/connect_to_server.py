@@ -2,44 +2,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from .. import requests
 from ..requests.response import HTTPError
-from ..widgets import (
-    Button,
-    Direction,
-    Form,
-    FormEntry,
-    HorizontalAlign,
-    Icon,
-    Layout,
-    Text,
-    TextInput,
-    VerticalAlign,
-    button_icon,
-)
-from . import TELEGRAM_ICON, Router
+from . import Router, TELEGRAM_ICON, BACKARROW_ICON
 
 
-class ConnectToServer(QtWidgets.QMainWindow):
+class ConnectToServer(object):
     def __init__(self, router: Router):
-        super(ConnectToServer, self).__init__()
-        self.router: Router = router
-        self.resize(500, 650)
-        self.setStyleSheet("background-color: rgb(14, 22, 33);")
-        central_widget = QtWidgets.QWidget(self)
-
-        self.url_input = TextInput("Url")
-        self.port_input = TextInput("Port", validator="\d+")
-        layout: Layout = Layout(
-            # h_align=HorizontalAlign.Center,
-            widgets=[
-                Icon(TELEGRAM_ICON, width=100, height=100),
-                self.url_input,
-                self.port_input,
-                Text("Hi"),
-                Button("Connect", on_click=self._connect),
-            ],
-        )
-        central_widget.setLayout(layout.layout)
-        self.setCentralWidget(central_widget)
+        self.router = router
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")

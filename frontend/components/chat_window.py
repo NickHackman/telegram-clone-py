@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from . import EMOTE_ICON, SEND_ICON, SEARCH_ICON
 
@@ -7,10 +7,7 @@ class ChatWindow(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(984, 718)
-        Form.setStyleSheet(
-            "background-color: rgb(14, 22, 33); \n"
-            "QMainWindow::separator { width: 0; height: 0; }"
-        )
+        Form.setStyleSheet("background-color: rgb(14, 22, 33);")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")

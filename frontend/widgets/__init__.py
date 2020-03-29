@@ -67,5 +67,4 @@ from .form import Form, FormEntry
 from .text import Text
 from .icon import Icon
 from .button import Button, button_icon
-from .alignment import VerticalAlign, HorizontalAlign
-from .spacer import Spacer
+from .alignment import Align
