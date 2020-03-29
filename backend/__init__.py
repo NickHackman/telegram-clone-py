@@ -49,7 +49,7 @@ def validate_user(info: UserInfo, token: str) -> bool:
     try:
         data = jwt.decode(token, secret, algorithms=["HS256"])
         return data["email"] == info.email and data["password"] == info.password
-    except (jwt.DecodeError, jwt.exceptions.ExpiredSignatureError):
+    except (jwt.DecodeError, jwt.ExpiredSignatureError):
         return False
 
 
@@ -176,7 +176,7 @@ def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
 
 
 @rest.route("/user/<handle>", Method.DELETE)
-def delete_user(handle: str, payload: Dict[any, any]) -> Dict[Any, Any]:
+def delete_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     """
     Deletes a User
 
@@ -200,7 +200,7 @@ def delete_user(handle: str, payload: Dict[any, any]) -> Dict[Any, Any]:
     user = Session.query(User).filter(User.handle == handle).first()
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
-    if not validate_user(user.info, token):
+    if not validate_user(user.info, payload["token"]):
         return response(Status.Error, "Failed to validate token")
     Session.delete(user)
     Session.commit()
@@ -243,7 +243,7 @@ def update_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
     user = Session.query(User).filter(User.handle == handle)
     if not user:
         return response(Status.Failure, f"No User with handle: {handle}")
-    if not validate_user(user.info, token):
+    if not validate_user(user.info, payload["token"]):
         return response(Status.Error, "Failed to validate token")
     user.update(payload)
     Session.commit()
@@ -347,9 +347,9 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
         elif msg.reciever == handle and not msg.sender in payload:
             payload[msg.sender] = []
         if msg.sender == handle:
-            payload[msg.reciever] = msg.to_sender_json()
+            payload[msg.reciever].append(msg.to_sender_json())
         else:
-            payload[msg.sender] = msg.to_reciever_json()
+            payload[msg.sender].append(msg.to_reciever_json())
     return response(Status.Success, payload)
 
 

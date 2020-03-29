@@ -89,8 +89,8 @@ implementation as well, only way to get around that and use a library, such as
   "port": 8888,
   "mode": "debug",
   "log_file": "log_file.txt",
-  "secret": "super_secret_passcodes"
-  "websocket_port": 8889,
+  "secret": "super_secret_passcodes",
+  "websocket_port": 8889
 }
 ```
 
