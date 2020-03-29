@@ -3,7 +3,7 @@ import asyncio
 
 from typing import Any, Dict, Tuple, Callable
 
-import websockets  # type: ignore
+import websockets
 from PyQt5.QtWidgets import QApplication, QMainWindow  # type: ignore
 
 from .screens import Router
