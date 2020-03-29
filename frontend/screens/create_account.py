@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from typing import Dict, Any, Tuple
 
 from PyQt5 import QtCore, QtGui, QtWidgets  # type:ignore
@@ -196,8 +197,9 @@ class CreateAccount(object):
         privkey: rsa.PrivateKey
             Private Key to store in a file
         """
-        with open(f".{os.sep}{handle}_{url}_privkey.pem", "w+") as file:
-            file.write(privkey.save_pkcs1())
+        PATH: str = f"{Path(__file__).parent.parent.parent.absolute()}{os.sep}{handle}_privkey.pem"
+        with open(PATH, "w") as file:
+            file.write(privkey.save_pkcs1().decode())
 
     def _create_account(self, window) -> None:
         """

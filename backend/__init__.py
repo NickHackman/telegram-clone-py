@@ -245,7 +245,7 @@ def update_user(handle: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
         return response(Status.Failure, f"No User with handle: {handle}")
     if not validate_user(user.info, payload["token"]):
         return response(Status.Error, "Failed to validate token")
-    user.update(payload["info"])
+    user.update(payload)
     Session.commit()
     return response(Status.Success, user.to_json())
 
@@ -342,9 +342,9 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
         Message.sender == handle or Message.reciever == handle
     ).all()
     for msg in messages:
-        if msg.sender == handle and msg.reciever not in payload:
+        if msg.sender == handle and not msg.reciever in payload:
             payload[msg.reciever] = []
-        elif msg.reciever == handle and msg.sender not in payload:
+        elif msg.reciever == handle and not msg.sender in payload:
             payload[msg.sender] = []
         if msg.sender == handle:
             payload[msg.reciever].append(msg.to_sender_json())

@@ -4,6 +4,22 @@ from PyQt5 import QtCore  # type: ignore
 
 
 class QtThread(QtCore.QThread):
+    """
+    Wrapper around QThread
+
+    Parameters
+    ----------
+
+    fun: Callable[..., Any]
+          Function that is called when ran
+
+    finished: QtCore.pyqtSignal
+          Signal emitted when callback is finished to return value to main thread
+
+    *args: List[Any]
+          Arguments that are passed into callback
+    """
+
     args: Tuple[Any, ...]
 
     def __init__(self, fun, finished: QtCore.pyqtSignal, *args):
@@ -13,6 +29,9 @@ class QtThread(QtCore.QThread):
         self.args = args
 
     def run(self) -> None:
+        """
+        Execute function and emit result
+        """
         result: Any = self.fun(*self.args)
         self._finished.emit(result)
 

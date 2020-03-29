@@ -1,9 +1,7 @@
 import sys
-import asyncio
 
 from typing import Any, Dict, Tuple, Callable
 
-import websockets  # type: ignore
 from PyQt5.QtWidgets import QApplication, QMainWindow  # type: ignore
 
 from .screens import Router
@@ -45,7 +43,5 @@ first_route: Tuple[str, Callable[..., Any], QMainWindow] = (
     main_window,
 )
 router: Router = Router(routes, setup_route_function, first_route)
-# setup_route_function(main_window, ConnectToServer(router))
-start = ConnectToServer(router)
-start.show()
+setup_route_function(main_window, ConnectToServer(router))
 sys.exit(app.exec_())
