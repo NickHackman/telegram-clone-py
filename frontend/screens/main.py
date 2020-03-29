@@ -116,7 +116,7 @@ class Main(QtCore.QObject):
         try:
             regex: Pattern[str] = re.compile(self.search_input.text())
             thread = QtThread(self._query_users, self.search_signal, regex)
-            thread._finished.connect(self._update_list)
+            thread.finished.connect(self._update_list)
             thread.start()
         except re.error:
             pass

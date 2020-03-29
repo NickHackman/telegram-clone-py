@@ -3,7 +3,7 @@ QLabel as an Icon
 """
 from typing import Tuple
 
-from PyQt5 import QtCore, QtWidgets, QtSvg  # type: ignore
+from PyQt5 import QtCore, QtSvg  # type: ignore
 
 from .qtwidget import QtWidget
 
@@ -18,7 +18,7 @@ class Icon(QtWidget):
     icon_path: str
         Path to Icon
 
-    parent: QtWidgets.QWidget = None
+    parent: QtCore.QObject = None
         Parent Widget
 
     width: int = 32
@@ -40,7 +40,7 @@ class Icon(QtWidget):
         self,
         icon_path: str,
         *,
-        parent: QtWidgets.QWidget = None,
+        parent: QtCore.QObject = None,
         width: int = 32,
         height: int = 32,
         geometry: Tuple[int, int, int, int] = None,

@@ -3,7 +3,7 @@ Base QtWidget
 
 Sets base functionality of all other widgets
 """
-from PyQt5 import QtWidgets  # type: ignore
+from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 
 class QtWidget(QtWidgets.QWidget):
@@ -17,10 +17,10 @@ class QtWidget(QtWidgets.QWidget):
          Parent widget
     """
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, parent: QtCore.QObject = None):
         super(QtWidget, self).__init__(parent)
 
-    def set_parent(self, parent: QtWidgets.QWidget) -> None:
+    def set_parent(self, parent: QtCore.QObject) -> None:
         """
         Sets Parent Widget
 

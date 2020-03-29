@@ -63,7 +63,7 @@ class Button(QtWidget):
     geometry: Tuple[int, int, int, int] = None
           Location of for Button
 
-    parent: QtWidgets.QWidget = None
+    parent: QtCore.QObject = None
           Parent widget
     """
 
@@ -77,7 +77,7 @@ class Button(QtWidget):
         on_click: Callable[..., None] = None,
         enabled: bool = True,
         geometry: Tuple[int, int, int, int] = None,
-        parent: QtWidgets.QWidget = None,
+        parent: QtCore.QObject = None,
     ):
         super(Button, self).__init__(parent)
         if isinstance(inner, QtGui.QIcon):

@@ -64,7 +64,7 @@ class Form(QtWidget):
     vertical_spacing: int = None
          Set Vertical spacing, defaults to inherit from parent
 
-    parent: QtWidgets.QWidget = None
+    parent: QtCore.QObject = None
          Parent Widget
     """
 
@@ -77,7 +77,7 @@ class Form(QtWidget):
         h_align: HorizontalAlign = HorizontalAlign.Center,
         horizontal_spacing: int = None,
         vertical_spacing: int = None,
-        parent: QtWidgets.QWidget = None
+        parent: QtCore.QObject = None
     ):
         super(Form, self).__init__(parent)
         self.form_layout = QtWidgets.QFormLayout(self)
