@@ -1,12 +1,25 @@
+import time
+from typing import Dict, Any
+import json
+import binascii
+from threading import Thread
+
+import rsa
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
+from .. import requests
 from . import EMOTE_ICON, SEND_ICON, SEARCH_ICON
 from ..models import Chat
 
 
-class ChatWindow(object):
-    def __init__(self, chat: Chat):
+class ChatWindow(QtCore.QObject):
+    send_signal = QtCore.pyqtSignal(object)
+    recv_signal = QtCore.pyqtSignal(object)
+
+    def __init__(self, chat: Chat, state: Dict[str, Any]):
+        super(ChatWindow, self).__init__()
         self.chat = chat
+        self.state = state
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -69,6 +82,7 @@ class ChatWindow(object):
             "border-radius: 2px;"
         )
         self.message_line.setObjectName("message_line")
+        self.message_line.returnPressed.connect(lambda: self._send_message())
         self.horizontalLayout.addWidget(self.message_line)
         self.emoji_button = QtWidgets.QPushButton(self.widget)
         self.emoji_button.setText("")
@@ -90,6 +104,7 @@ class ChatWindow(object):
         self.send_button.setIcon(icon2)
         self.send_button.setIconSize(QtCore.QSize(24, 24))
         self.send_button.setFlat(True)
+        self.send_button.clicked.connect(lambda: self._send_message())
         self.send_button.setObjectName("send_button")
         self.horizontalLayout.addWidget(self.send_button)
         self.verticalLayout.addWidget(self.widget)
@@ -102,3 +117,29 @@ class ChatWindow(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.message_line.setPlaceholderText(_translate("Form", "Send a message..."))
+
+    def _send_message_to_server(self, message: str) -> None:
+        sender_public_key = rsa.PublicKey.load_pkcs1(self.state["public_key"].encode())
+        reciever_public_key = rsa.PublicKey.load_pkcs1(
+            self.chat.other.public_key.encode()
+        )
+        payload: Dict[str, Any] = {
+            "sender": self.state["handle"],
+            "reciever": self.chat.other.handle,
+            "sender_message": binascii.b2a_base64(
+                rsa.encrypt(message.encode("utf-8"), sender_public_key)
+            ).decode(),
+            "reciever_message": binascii.b2a_base64(
+                rsa.encrypt(message.encode("utf-8"), reciever_public_key)
+            ).decode(),
+        }
+        response = requests.post(
+            f"{self.state['url']}/message/{self.state['jwt']}", json.dumps(payload),
+        )
+
+    def _send_message(self) -> None:
+        thread = Thread(
+            target=self._send_message_to_server, args=[self.message_line.text()]
+        )
+        thread.start()
+        self.message_line.clear()
