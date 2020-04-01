@@ -15,16 +15,12 @@ from .rest import Rest, Method  # type: ignore
 from .models import Session, User, UserInfo, Message
 from .response import response, Status  # type: ignore
 from .util import create_jwt, send_verification_email  # type: ignore
-from .websocket import WebsocketMessaging
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
 
 rest: Rest = Rest(CONFIG_PATH)
 secret = rest.get_secret()
-
-ws_msging: WebsocketMessaging = WebsocketMessaging(secret, Session)
-rest.set_ws_fn(ws_msging.start)
 
 
 def validate_user(info: UserInfo, token: str) -> bool:

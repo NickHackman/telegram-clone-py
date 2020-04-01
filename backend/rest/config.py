@@ -37,17 +37,10 @@ class Config:
     port: int
     log_file: str
     secret: str
-    websocket_port: int
     mode: Mode = Mode.Debug
 
     def __init__(
-        self,
-        host: str,
-        port: int,
-        log_file: str,
-        mode: str,
-        secret: str,
-        websocket_port: int,
+        self, host: str, port: int, log_file: str, mode: str, secret: str,
     ):
         """
         Constructs a Config
@@ -74,7 +67,6 @@ class Config:
         self.log_file = log_file
         self.mode = Mode(mode)
         self.secret = secret
-        self.websocket_port = websocket_port
 
     @staticmethod
     def load_from_file(path: Union[Path, str]) -> Config:

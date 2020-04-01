@@ -26,7 +26,6 @@ from enum import Enum
 from itertools import islice
 
 from colorama import init  # type: ignore
-import websockets  # type: ignore
 
 from .config import Config, Mode
 from .log import config_print, add_route_print, invalid_path_404, valid_path_200
@@ -87,7 +86,6 @@ class Rest:
     _routes: List[
         Tuple[Pattern[str], Method, List[Type], Callable[..., Dict[Any, Any]]]
     ]
-    _websocket_fun: Optional[Callable[..., Awaitable[None]]] = None
     _config: Config
 
     def __init__(
@@ -98,18 +96,6 @@ class Rest:
         if self._config.mode is Mode.Debug:
             init(autoreset=True)
             config_print(self._config)
-
-    def set_ws_fn(self, ws_fun: Callable[..., Awaitable[None]] = None) -> None:
-        """
-        Sets the Websocket function
-
-        Parameters
-        ----------
-
-        ws_fun: Callable[..., Awaitable[None]] = None
-             Async function that is called by the websocket server
-        """
-        self._websocket_fun = ws_fun
 
     def route(self, route_str: str, method: Method) -> Callable[..., Dict[Any, Any]]:
         """
@@ -204,22 +190,11 @@ class Rest:
             await writer.drain()
             writer.close()
 
-        async def handle_websocket(
-            websocket: websockets.WebSocketServerProtocol, path: str
-        ) -> None:
-            if self._websocket_fun:
-                await self._websocket_fun(websocket, path)
-            return None
-
         event_loop = asyncio.get_event_loop()
         server = asyncio.start_server(
             handle_request, self._config.host, self._config.port, loop=event_loop,
         )
-        websocket_server = websockets.serve(
-            handle_websocket, self._config.host, self._config.websocket_port
-        )
         event_loop.run_until_complete(server)
-        event_loop.run_until_complete(websocket_server)
         event_loop.run_forever()
         server.close()
 
