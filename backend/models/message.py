@@ -43,7 +43,12 @@ class Message(Base):
 
     __tablename__ = "Message"
 
-    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    id = db.Column(
+        db.Integer,
+        db.Sequence("message_id", start=0, increment=1),
+        primary_key=True,
+        nullable=False,
+    )
     reciever_message = db.Column(db.String(512), nullable=False)
     sender_message = db.Column(db.String(512), nullable=False)
     date = db.Column(db.Time, nullable=False, default=datetime.utcnow)
