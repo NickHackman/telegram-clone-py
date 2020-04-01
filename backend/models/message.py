@@ -101,7 +101,7 @@ class Message(Base):
         return {
             "id": self.id,
             "message": self.sender_message,
-            "date": self.date,
+            "date": self.date.strftime("%m/%d/%y"),
             "edited": self.edited,
             "read": self.read,
         }
