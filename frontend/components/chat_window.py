@@ -1,9 +1,13 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from . import EMOTE_ICON, SEND_ICON, SEARCH_ICON
+from ..models import Chat
 
 
 class ChatWindow(object):
+    def __init__(self, chat: Chat):
+        self.chat = chat
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(984, 718)
@@ -22,12 +26,12 @@ class ChatWindow(object):
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.name = QtWidgets.QLabel(self.horizontalWidget)
         self.name.setStyleSheet("color: rgb(255, 255, 255);")
-        self.name.setText("")
+        self.name.setText(self.chat.other.handle)
         self.name.setObjectName("name")
         self.verticalLayout_3.addWidget(self.name)
         self.last_seen = QtWidgets.QLabel(self.horizontalWidget)
         self.last_seen.setStyleSheet("color: rgb(79, 95, 112);")
-        self.last_seen.setText("")
+        self.last_seen.setText("Never")
         self.last_seen.setIndent(-1)
         self.last_seen.setObjectName("last_seen")
         self.verticalLayout_3.addWidget(self.last_seen)
