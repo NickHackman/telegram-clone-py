@@ -4,7 +4,7 @@ from typing import List, Pattern, Any
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from . import Router, MENU_ICON
-from ..components.chat import Chat as ChatWidget
+from ..components.chat import ChatWidget
 from ..components.chat_window import ChatWindow
 
 from .. import requests

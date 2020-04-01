@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from . import USER_ICON
@@ -5,7 +7,7 @@ from ..models import Chat
 from ..models.message import Message
 
 
-class Chat(QtWidgets.QWidget):
+class ChatWidget(QtWidgets.QWidget):
     chat: Chat
 
     def __init__(self, chat: Chat):
@@ -32,17 +34,16 @@ class Chat(QtWidgets.QWidget):
 
         inner_h_layout.addWidget(name_widget)
 
-        last_message: Message = None
+        last_message: Optional[Message] = None
         try:
             last_message = chat.messages[-1]
         except IndexError:
-            last_message = Message(None, "", "", "Never")
+            last_message = Message("", "", "", "Never")
         date_widget = QtWidgets.QLabel(last_message.date, self)
         date_widget.setStyleSheet("color: rgb(255, 255, 255)")
         date_widget.setLayoutDirection(QtCore.Qt.LeftToRight)
-        date_widget.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
-        )
+        date_widget.setAlignment(QtCore.Qt.AlignRight)
+        date_widget.setAlignment(QtCore.Qt.AlignVCenter)
 
         inner_h_layout.addWidget(date_widget)
         v_layout.addLayout(inner_h_layout)
