@@ -82,7 +82,7 @@ class Main(QtCore.QObject):
         )
         self.search_input.setClearButtonEnabled(True)
         self.search_input.setObjectName("lineEdit")
-        self.search_input.editingFinished.connect(lambda: self._search())
+        self.search_input.textChanged.connect(lambda: self._search())
         self.horizontalLayout.addWidget(self.search_input)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.listWidget = QtWidgets.QListWidget(self.dockWidgetContents)
@@ -167,7 +167,7 @@ class Main(QtCore.QObject):
             response = requests.get(
                 f"{state['url']}/messages/{state['handle']}/{state['jwt']}"
             )
-            print(response.json)
+            print(response.json["response"])
 
     def _search(self) -> None:
         """
