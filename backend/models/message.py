@@ -51,7 +51,7 @@ class Message(Base):
     )
     reciever_message = db.Column(db.String(512), nullable=False)
     sender_message = db.Column(db.String(512), nullable=False)
-    date = db.Column(db.Time, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     edited = db.Column(db.Boolean, default=False, nullable=False)
     read = db.Column(db.Boolean, default=False, nullable=False)
 
