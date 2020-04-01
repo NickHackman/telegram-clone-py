@@ -78,7 +78,7 @@ class Message(Base):
             "id": self.id,
             "sender": self.sender,
             "message": self.reciever_message,
-            "date": self.date,
+            "date": self.date.strftime("%m/%d/%y"),
             "edited": self.edited,
         }
 
