@@ -364,4 +364,44 @@ def is_telegram_clone_server() -> Dict[Any, Any]:
     return response(Status.Success, True)
 
 
+@rest.route("/message/<token>", Method.POST)
+def send_message(token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+    """
+    Send a message
+
+    Parameters
+    ----------
+
+    token: str
+          Token to validate the user
+
+    Payload
+    -------
+
+    {
+      "sender_message": "",
+      "reciever_message": "",
+      "sender": "",
+      "reciever": "",
+    }
+
+    Returns
+    -------
+
+    Success message that said the message sent
+    """
+    user = Session.query(User).filter(User.handle == payload["sender"]).first()
+    if not validate_user(user.info, token):
+        return response(Status.Error, "Failed to validate user")
+    message: Message = Message(
+        reciever_message=payload["reciever_message"],
+        sender_message=payload["sender_message"],
+        sender=payload["sender"],
+        reciever=payload["reciever"],
+    )
+    Session.add(message)
+    Session.commit()
+    return response(Status.Success, "Message sent")
+
+
 rest.run()
