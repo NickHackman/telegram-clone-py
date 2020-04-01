@@ -147,7 +147,7 @@ class Login(object):
         response = requests.post(f"{url}/login", json.dumps(payload))
         if response.json["status"] == "success":
             self.router.set_state("jwt", response.json["response"]["token"])
-            self.router.set_state("websocket_port", response.json["response"]["token"])
+            self.router.set_state("public_key", response.json["response"]["public_key"])
             self.router.push("/main", window)
         else:
             self.error_message.setText(response.json["response"])
