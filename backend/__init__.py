@@ -44,7 +44,9 @@ def validate_user(info: UserInfo, token: str) -> bool:
     """
     try:
         data = jwt.decode(token, secret, algorithms=["HS256"])
-        return data["email"] == info.email and data["password"] == info.password
+        return (
+            data["email"] == info.email and data["password"] == info.password.decode()
+        )
     except (jwt.DecodeError, jwt.ExpiredSignatureError):
         return False
 
@@ -164,10 +166,12 @@ def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     if not bcrypt.checkpw(payload["password"].encode(), user_info.password):
         return response(Status.Failure, f"Password is incorrect")
 
-    response_payload: Dict[str, Any] = {
-        "token": create_jwt(user_info.email, user_info.password, secret).decode(),
-        "public_key": user_info.public_key.decode(),
-    }
+    user: User = Session.query(User).filter(User.handle == user_info.handle).first()
+    response_payload: Dict[str, Any] = user.to_json()
+    response_payload["token"] = create_jwt(
+        user_info.email, user_info.password, secret
+    ).decode()
+
     return response(Status.Success, response_payload)
 
 
