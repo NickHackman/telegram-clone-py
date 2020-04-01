@@ -166,7 +166,7 @@ def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
 
     response_payload: Dict[str, Any] = {
         "token": create_jwt(user_info.email, user_info.password, secret).decode(),
-        "websocket_port": rest._config.websocket_port,
+        "public_key": user_info.public_key.decode(),
     }
     return response(Status.Success, response_payload)
 
