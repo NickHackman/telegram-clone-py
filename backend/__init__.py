@@ -301,10 +301,10 @@ def list_users() -> Dict[Any, Any]:
     Returns
     -------
 
-    List[str] of User handles
+    List[Dict[str, str]] of User information
     """
     users: List[User] = Session.query(User).all()
-    users_json: List[Dict[str, str]] = [user.handle for user in users]
+    users_json: List[Dict[str, str]] = [user.to_json() for user in users]
     return response(Status.Success, users_json)
 
 
