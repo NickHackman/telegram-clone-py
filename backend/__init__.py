@@ -10,6 +10,7 @@ from typing import Dict, Any, List
 
 import bcrypt  # type: ignore
 import jwt
+from sqlalchemy import or_
 
 from .rest import Rest, Method  # type: ignore
 from .models import Session, User, UserInfo, Message
@@ -339,7 +340,7 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
     if not validate_user(user.info, token):
         return response(Status.Error, "Failed to validate token")
     messages: List[Message] = Session.query(Message).filter(
-        Message.sender == handle or Message.reciever == handle
+        or_(Message.sender == handle, Message.reciever == handle)
     ).all()
     for msg in messages:
         if msg.sender == handle and not msg.reciever in payload:
@@ -348,7 +349,7 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
             payload[msg.sender] = []
         if msg.sender == handle:
             payload[msg.reciever].append(msg.to_sender_json())
-        else:
+        elif msg.reciever == handle:
             payload[msg.sender].append(msg.to_reciever_json())
     return response(Status.Success, payload)
 
