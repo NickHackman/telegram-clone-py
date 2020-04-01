@@ -146,8 +146,10 @@ class Login(object):
         url: str = self.router.state["url"]
         response = requests.post(f"{url}/login", json.dumps(payload))
         if response.json["status"] == "success":
-            self.router.set_state("jwt", response.json["response"]["token"])
-            self.router.set_state("public_key", response.json["response"]["public_key"])
+            data: Dict[str, Any] = response.json["response"]
+            self.router.set_state("jwt", data["token"])
+            self.router.set_state("public_key", data["public_key"])
+            self.router.set_state("handle", data["handle"])
             self.router.push("/main", window)
         else:
             self.error_message.setText(response.json["response"])
