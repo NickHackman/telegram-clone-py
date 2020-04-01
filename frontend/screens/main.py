@@ -1,5 +1,8 @@
 import re
-from typing import List, Pattern, Any
+from typing import List, Pattern, Any, Dict
+from threading import Thread
+from datetime import datetime
+import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -8,7 +11,6 @@ from ..components.chat import ChatWidget
 from ..components.chat_window import ChatWindow
 
 from .. import requests
-from .thread import QtThread
 from ..components.chat_list_widget_item import ChatListWidgetItem
 
 from ..models import Chat
@@ -16,10 +18,14 @@ from ..models.user import User
 
 
 class Main(QtCore.QObject):
+    users: List[User]
+    chats: List[Chat]
     search_signal = QtCore.pyqtSignal(object)
 
     def __init__(self, router: Router):
         super(Main, self).__init__(None)
+        self.users = []
+        self.chats = []
         self.router = router
 
     def setupUi(self, MainWindow):
@@ -88,9 +94,15 @@ class Main(QtCore.QObject):
         self.verticalLayout.addWidget(self.listWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.dockWidget.setWidget(self.dockWidgetContents)
+        thread = Thread(target=self._update_chats, daemon=True)
+        thread.start()
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidget)
 
         self.retranslateUi(MainWindow)
+        timer = QtCore.QTimer(MainWindow)
+        timer.timeout.connect(self._update_list)
+        timer.setInterval(500)
+        timer.start()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -103,11 +115,11 @@ class Main(QtCore.QObject):
     ) -> None:
         # Subclass QListWidgetItem to allow for data then pass into ChatWindow
         central_widget = QtWidgets.QWidget()
-        chat_window = ChatWindow(item.chat)
+        chat_window = ChatWindow(item.chat, item.state)
         chat_window.setupUi(central_widget)
         window.setCentralWidget(central_widget)
 
-    def _query_users(self, regex: Pattern[str]) -> List[Any]:
+    def _query_users(self, regex: Pattern[str]):
         """
         Queries Users then filters based on regex
 
@@ -123,17 +135,16 @@ class Main(QtCore.QObject):
         List[Any]
         new list of Chats
         """
-        url: str = self.router.state["url"]
-        response = requests.get(f"{url}/users")
+        response = requests.get(f"{self.router.state['url']}/users")
         response.raise_for_status()
-        users = [
-            Chat(User(name, "", ""), [])
-            for name in response.json["response"]
-            if regex.match(name)
+        self.users = [
+            Chat(User(user["handle"], user["public_key"], user["bio"]), [])
+            for user in response.json["response"]
+            if regex.match(user["handle"])
         ]
-        return users
+        print(self.users)
 
-    def _update_list(self, new_list: List[Chat]) -> None:
+    def _update_list(self) -> None:
         """
         Updates the list of chats shown with the new results
 
@@ -144,10 +155,19 @@ class Main(QtCore.QObject):
               New list of chats
         """
         self.listWidget.clear()
-        for item in new_list:
-            list_item = ChatListWidgetItem(item, self.listWidget)
+        for user in self.users:
+            list_item = ChatListWidgetItem(user, self.router.state, self.listWidget)
             self.listWidget.addItem(list_item)
-            self.listWidget.setItemWidget(list_item, ChatWidget(item))
+            self.listWidget.setItemWidget(list_item, ChatWidget(user))
+
+    def _update_chats(self) -> None:
+        state: Dict[str, Any] = self.router.state
+        while True:
+            time.sleep(3)
+            response = requests.get(
+                f"{state['url']}/messages/{state['handle']}/{state['jwt']}"
+            )
+            print(response.json)
 
     def _search(self) -> None:
         """
@@ -157,8 +177,7 @@ class Main(QtCore.QObject):
         """
         try:
             regex: Pattern[str] = re.compile(self.search_input.text())
-            thread = QtThread(self._query_users, self.search_signal, regex)
-            thread._finished.connect(self._update_list)
+            thread = Thread(target=self._query_users, args=[regex])
             thread.start()
         except re.error:
             pass
