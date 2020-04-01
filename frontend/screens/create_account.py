@@ -225,7 +225,7 @@ class CreateAccount(object):
             "email": email,
             "handle": handle,
             "password": password,
-            "public_key": self._strip_whitespace(pubkey.save_pkcs1().decode()),
+            "public_key": pubkey.save_pkcs1().decode(),
         }
 
         url: str = self.router.state["url"]
