@@ -4,7 +4,7 @@ import json
 from typing import Dict, Any
 
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
-import rsa
+import rsa  # type: ignore
 
 from .. import requests
 from . import Router, TELEGRAM_ICON, BACKARROW_ICON

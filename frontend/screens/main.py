@@ -6,7 +6,7 @@ import binascii
 import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import rsa
+import rsa  # type: ignore
 
 from . import Router, MENU_ICON
 from ..components.chat import ChatWidget
@@ -21,7 +21,7 @@ from ..models.message import Message
 
 
 class Main(QtCore.QObject):
-    users: List[User]
+    users: List[Chat]
     chats: List[Chat]
     search_signal = QtCore.pyqtSignal(object)
 

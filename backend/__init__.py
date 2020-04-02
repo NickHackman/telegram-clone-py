@@ -10,7 +10,7 @@ from typing import Dict, Any, List
 
 import bcrypt  # type: ignore
 import jwt
-from sqlalchemy import or_
+from sqlalchemy import or_  # type: ignore
 
 from .rest import Rest, Method  # type: ignore
 from .models import Session, User, UserInfo, Message

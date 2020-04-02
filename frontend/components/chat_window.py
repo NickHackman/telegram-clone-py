@@ -4,7 +4,7 @@ import json
 import binascii
 from threading import Thread
 
-import rsa
+import rsa  # type: ignore
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from .. import requests

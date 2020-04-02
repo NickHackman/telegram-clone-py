@@ -42,7 +42,7 @@ class ChatWidget(QtWidgets.QWidget):
         date_widget = QtWidgets.QLabel(last_message.date, self)
         date_widget.setStyleSheet("color: rgb(255, 255, 255)")
         date_widget.setLayoutDirection(QtCore.Qt.LeftToRight)
-        date_widget.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        date_widget.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)  # type: ignore
 
         inner_h_layout.addWidget(date_widget)
         v_layout.addLayout(inner_h_layout)
