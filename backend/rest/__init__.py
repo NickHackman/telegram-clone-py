@@ -226,13 +226,15 @@ class Rest:
                     match.groups(), arg_types
                 )
                 if self._config.mode is Mode.Debug:
-                    valid_path_200(path, ip_address, req_method.value)
+                    valid_path_200(
+                        path, ip_address, req_method.value, self._config.log_file
+                    )
                 if req_method in (Method.PUT, Method.POST):
                     return construct_header(200, "OK", route(*arguments, payload))
                 return construct_header(200, "OK", route(*arguments))
 
         if self._config.mode is Mode.Debug:
-            invalid_path_404(path, ip_address, req_method.value)
+            invalid_path_404(path, ip_address, req_method.value, self._config.log_file)
         return construct_header(404, "Not found")
 
     def get_secret(self) -> str:
