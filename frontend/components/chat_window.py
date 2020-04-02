@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 from .. import requests
 from . import EMOTE_ICON, SEND_ICON, SEARCH_ICON
 from ..models import Chat
+from .msg_widget import MessageWidget
 
 
 class ChatWindow(QtCore.QObject):
@@ -63,6 +64,7 @@ class ChatWindow(QtCore.QObject):
         self.horizontalLayout_2.addWidget(self.pushButton)
         self.verticalLayout_2.addWidget(self.horizontalWidget)
         self.listWidget = QtWidgets.QListWidget(Form)
+        self.listWidget.setSpacing(10)
         self.listWidget.setStyleSheet("border: none;")
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout_2.addWidget(self.listWidget)
@@ -108,6 +110,10 @@ class ChatWindow(QtCore.QObject):
         self.send_button.setObjectName("send_button")
         self.horizontalLayout.addWidget(self.send_button)
         self.verticalLayout.addWidget(self.widget)
+        timer = QtCore.QTimer(Form)
+        timer.timeout.connect(self._update_list)
+        timer.setInterval(1500)
+        timer.start()
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.retranslateUi(Form)
@@ -117,6 +123,17 @@ class ChatWindow(QtCore.QObject):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.message_line.setPlaceholderText(_translate("Form", "Send a message..."))
+
+    def _update_list(self) -> None:
+        self.listWidget.clear()
+        for msg in self.state["chat"][self.chat.other.handle].messages:
+            list_item = QtWidgets.QListWidgetItem()
+            self.listWidget.addItem(list_item)
+            widget = QtWidgets.QWidget()
+            widget_class = MessageWidget(msg)
+            widget_class.setupUi(widget)
+            list_item.setSizeHint(widget.sizeHint())
+            self.listWidget.setItemWidget(list_item, widget)
 
     def _send_message_to_server(self, message: str) -> None:
         sender_public_key = rsa.PublicKey.load_pkcs1(self.state["public_key"].encode())

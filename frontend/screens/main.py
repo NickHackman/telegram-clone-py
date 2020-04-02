@@ -28,8 +28,8 @@ class Main(QtCore.QObject):
     def __init__(self, router: Router):
         super(Main, self).__init__(None)
         self.users = []
-        self.chats = []
         self.router = router
+        self.router.state["chat"] = {}
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -159,7 +159,7 @@ class Main(QtCore.QObject):
         """
         self.listWidget.clear()
         self._update_list(self.users)
-        self._update_list(self.chats)
+        self._update_list(self.router.state["chat"].values())
 
     def _update_list(self, item_list: List[Any]) -> None:
         for item in item_list:
@@ -183,7 +183,7 @@ class Main(QtCore.QObject):
             )
             chats = response.json["response"]
             state = self.router.state
-            self.chats.clear()
+            self.chats = []
             for chat in chats:
                 user: User = User(chat, "", "")
                 messages: List[Message] = []
@@ -212,6 +212,8 @@ class Main(QtCore.QObject):
                             )
                         )
                 self.chats.append(Chat(user, messages))
+                for chat in self.chats:
+                    self.router.state["chat"][chat.other.handle] = chat
 
     def _search(self) -> None:
         """
