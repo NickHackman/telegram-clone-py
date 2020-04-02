@@ -38,7 +38,7 @@ class ChatWidget(QtWidgets.QWidget):
         try:
             last_message = chat.messages[-1]
         except IndexError:
-            last_message = Message("", "", "", "Never")
+            last_message = Message(0, "", "", "", "Never")
         date_widget = QtWidgets.QLabel(last_message.date, self)
         date_widget.setStyleSheet("color: rgb(255, 255, 255)")
         date_widget.setLayoutDirection(QtCore.Qt.LeftToRight)

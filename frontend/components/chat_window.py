@@ -120,9 +120,16 @@ class ChatWindow(QtCore.QObject):
 
     def _send_message_to_server(self, message: str) -> None:
         sender_public_key = rsa.PublicKey.load_pkcs1(self.state["public_key"].encode())
-        reciever_public_key = rsa.PublicKey.load_pkcs1(
-            self.chat.other.public_key.encode()
-        )
+        if self.chat.other.public_key:
+            reciever_public_key = rsa.PublicKey.load_pkcs1(
+                self.chat.other.public_key.encode()
+            )
+        else:
+            reciever_public_key = rsa.PublicKey.load_pkcs1(
+                requests.get(f"{self.state['url']}/user/{self.chat.other.handle}").json[
+                    "response"
+                ]["public_key"]
+            )
         payload: Dict[str, Any] = {
             "sender": self.state["handle"],
             "reciever": self.chat.other.handle,

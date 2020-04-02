@@ -2,9 +2,11 @@ import re
 from typing import List, Pattern, Any, Dict
 from threading import Thread
 from datetime import datetime
+import binascii
 import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import rsa
 
 from . import Router, MENU_ICON
 from ..components.chat import ChatWidget
@@ -15,6 +17,7 @@ from ..components.chat_list_widget_item import ChatListWidgetItem
 
 from ..models import Chat
 from ..models.user import User
+from ..models.message import Message
 
 
 class Main(QtCore.QObject):
@@ -91,6 +94,7 @@ class Main(QtCore.QObject):
         )
         self.listWidget.setStyleSheet("border: none;")
         self.listWidget.setObjectName("listWidget")
+        self.listWidget.setSpacing(5)
         self.verticalLayout.addWidget(self.listWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.dockWidget.setWidget(self.dockWidgetContents)
@@ -100,8 +104,8 @@ class Main(QtCore.QObject):
 
         self.retranslateUi(MainWindow)
         timer = QtCore.QTimer(MainWindow)
-        timer.timeout.connect(self._update_list)
-        timer.setInterval(500)
+        timer.timeout.connect(self._update_lists)
+        timer.setInterval(1500)
         timer.start()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -142,9 +146,8 @@ class Main(QtCore.QObject):
             for user in response.json["response"]
             if regex.match(user["handle"])
         ]
-        print(self.users)
 
-    def _update_list(self) -> None:
+    def _update_lists(self) -> None:
         """
         Updates the list of chats shown with the new results
 
@@ -155,19 +158,60 @@ class Main(QtCore.QObject):
               New list of chats
         """
         self.listWidget.clear()
-        for user in self.users:
-            list_item = ChatListWidgetItem(user, self.router.state, self.listWidget)
+        self._update_list(self.users)
+        self._update_list(self.chats)
+
+    def _update_list(self, item_list: List[Any]) -> None:
+        for item in item_list:
+            list_item = ChatListWidgetItem(item, self.router.state, self.listWidget)
             self.listWidget.addItem(list_item)
-            self.listWidget.setItemWidget(list_item, ChatWidget(user))
+            widget = ChatWidget(item)
+            list_item.setSizeHint(widget.sizeHint())
+            self.listWidget.setItemWidget(list_item, widget)
+
+    @staticmethod
+    def decrypt_base64(b64_msg: str, privkey: rsa.PrivateKey) -> str:
+        msg_bytes = binascii.a2b_base64(b64_msg)
+        return rsa.decrypt(msg_bytes, privkey).decode()
 
     def _update_chats(self) -> None:
         state: Dict[str, Any] = self.router.state
         while True:
-            time.sleep(3)
+            time.sleep(1.5)
             response = requests.get(
                 f"{state['url']}/messages/{state['handle']}/{state['jwt']}"
             )
-            print(response.json["response"])
+            chats = response.json["response"]
+            state = self.router.state
+            self.chats.clear()
+            for chat in chats:
+                user: User = User(chat, "", "")
+                messages: List[Message] = []
+                for msg in chats[chat]:
+                    decrypt_msg: str = self.decrypt_base64(
+                        msg["message"], state["privkey"]
+                    )
+                    try:
+                        messages.append(
+                            Message(
+                                msg["id"],
+                                decrypt_msg,
+                                state["handle"],
+                                msg["sender"],
+                                msg["date"],
+                            )
+                        )
+                    except KeyError:
+                        messages.append(
+                            Message(
+                                msg["id"],
+                                decrypt_msg,
+                                chat,
+                                state["handle"],
+                                msg["date"],
+                            )
+                        )
+                self.chats.append(Chat(user, messages))
 
     def _search(self) -> None:
         """
