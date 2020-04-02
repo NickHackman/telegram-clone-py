@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..models import Chat
@@ -20,7 +22,11 @@ class ChatListWidgetItem(QtWidgets.QListWidgetItem):
     """
 
     chat: Chat
+    state: Dict[str, Any]
 
-    def __init__(self, chat: Chat, parent: QtWidgets.QListWidget):
+    def __init__(
+        self, chat: Chat, state: Dict[str, Any], parent: QtWidgets.QListWidget
+    ):
         super(ChatListWidgetItem, self).__init__(parent, 1000)
         self.chat = chat
+        self.state = state

@@ -10,21 +10,18 @@ from typing import Dict, Any, List
 
 import bcrypt  # type: ignore
 import jwt
+from sqlalchemy import or_  # type: ignore
 
 from .rest import Rest, Method  # type: ignore
 from .models import Session, User, UserInfo, Message
 from .response import response, Status  # type: ignore
 from .util import create_jwt, send_verification_email  # type: ignore
-from .websocket import WebsocketMessaging
 
 CONFIG_PATH = f"{Path(__file__).parent.absolute()}{os.sep}config.json"
 
 
 rest: Rest = Rest(CONFIG_PATH)
 secret = rest.get_secret()
-
-ws_msging: WebsocketMessaging = WebsocketMessaging(secret, Session)
-rest.set_ws_fn(ws_msging.start)
 
 
 def validate_user(info: UserInfo, token: str) -> bool:
@@ -48,7 +45,9 @@ def validate_user(info: UserInfo, token: str) -> bool:
     """
     try:
         data = jwt.decode(token, secret, algorithms=["HS256"])
-        return data["email"] == info.email and data["password"] == info.password
+        return (
+            data["email"] == info.email and data["password"] == info.password.decode()
+        )
     except (jwt.DecodeError, jwt.ExpiredSignatureError):
         return False
 
@@ -168,10 +167,12 @@ def login(payload: Dict[Any, Any]) -> Dict[Any, Any]:
     if not bcrypt.checkpw(payload["password"].encode(), user_info.password):
         return response(Status.Failure, f"Password is incorrect")
 
-    response_payload: Dict[str, Any] = {
-        "token": create_jwt(user_info.email, user_info.password, secret).decode(),
-        "websocket_port": rest._config.websocket_port,
-    }
+    user: User = Session.query(User).filter(User.handle == user_info.handle).first()
+    response_payload: Dict[str, Any] = user.to_json()
+    response_payload["token"] = create_jwt(
+        user_info.email, user_info.password, secret
+    ).decode()
+
     return response(Status.Success, response_payload)
 
 
@@ -305,10 +306,10 @@ def list_users() -> Dict[Any, Any]:
     Returns
     -------
 
-    List[str] of User handles
+    List[Dict[str, str]] of User information
     """
     users: List[User] = Session.query(User).all()
-    users_json: List[Dict[str, str]] = [user.handle for user in users]
+    users_json: List[Dict[str, str]] = [user.to_json() for user in users]
     return response(Status.Success, users_json)
 
 
@@ -339,7 +340,7 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
     if not validate_user(user.info, token):
         return response(Status.Error, "Failed to validate token")
     messages: List[Message] = Session.query(Message).filter(
-        Message.sender == handle or Message.reciever == handle
+        or_(Message.sender == handle, Message.reciever == handle)
     ).all()
     for msg in messages:
         if msg.sender == handle and not msg.reciever in payload:
@@ -348,7 +349,7 @@ def get_all_messages(handle: str, token: str) -> Dict[Any, Any]:
             payload[msg.sender] = []
         if msg.sender == handle:
             payload[msg.reciever].append(msg.to_sender_json())
-        else:
+        elif msg.reciever == handle:
             payload[msg.sender].append(msg.to_reciever_json())
     return response(Status.Success, payload)
 
@@ -366,6 +367,46 @@ def is_telegram_clone_server() -> Dict[Any, Any]:
     bool of True
     """
     return response(Status.Success, True)
+
+
+@rest.route("/message/<token>", Method.POST)
+def send_message(token: str, payload: Dict[Any, Any]) -> Dict[Any, Any]:
+    """
+    Send a message
+
+    Parameters
+    ----------
+
+    token: str
+          Token to validate the user
+
+    Payload
+    -------
+
+    {
+      "sender_message": "",
+      "reciever_message": "",
+      "sender": "",
+      "reciever": "",
+    }
+
+    Returns
+    -------
+
+    Success message that said the message sent
+    """
+    user = Session.query(User).filter(User.handle == payload["sender"]).first()
+    if not validate_user(user.info, token):
+        return response(Status.Error, "Failed to validate user")
+    message: Message = Message(
+        reciever_message=payload["reciever_message"],
+        sender_message=payload["sender_message"],
+        sender=payload["sender"],
+        reciever=payload["reciever"],
+    )
+    Session.add(message)
+    Session.commit()
+    return response(Status.Success, "Message sent")
 
 
 rest.run()

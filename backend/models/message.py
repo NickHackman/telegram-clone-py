@@ -43,10 +43,15 @@ class Message(Base):
 
     __tablename__ = "Message"
 
-    id = db.Column(db.Integer(), primary_key=True, nullable=False)
+    id = db.Column(
+        db.Integer,
+        db.Sequence("message_id", start=0, increment=1),
+        primary_key=True,
+        nullable=False,
+    )
     reciever_message = db.Column(db.String(512), nullable=False)
     sender_message = db.Column(db.String(512), nullable=False)
-    date = db.Column(db.Time, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     edited = db.Column(db.Boolean, default=False, nullable=False)
     read = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -73,7 +78,7 @@ class Message(Base):
             "id": self.id,
             "sender": self.sender,
             "message": self.reciever_message,
-            "date": self.date,
+            "date": self.date.strftime("%m/%d/%y"),
             "edited": self.edited,
         }
 
@@ -96,7 +101,7 @@ class Message(Base):
         return {
             "id": self.id,
             "message": self.sender_message,
-            "date": self.date,
+            "date": self.date.strftime("%m/%d/%y"),
             "edited": self.edited,
             "read": self.read,
         }

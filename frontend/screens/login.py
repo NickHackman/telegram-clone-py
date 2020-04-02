@@ -1,7 +1,10 @@
+from pathlib import Path
+import os
 import json
 from typing import Dict, Any
 
 from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+import rsa  # type: ignore
 
 from .. import requests
 from . import Router, TELEGRAM_ICON, BACKARROW_ICON
@@ -146,12 +149,22 @@ class Login(object):
         url: str = self.router.state["url"]
         response = requests.post(f"{url}/login", json.dumps(payload))
         if response.json["status"] == "success":
-            self.router.set_state("jwt", response.json["response"]["token"])
-            self.router.set_state("websocket_port", response.json["response"]["token"])
+            data: Dict[str, Any] = response.json["response"]
+            self.router.set_state("jwt", data["token"])
+            self.router.set_state("public_key", data["public_key"])
+            self.router.set_state("handle", data["handle"])
+            self.router.set_state("privkey", self._load_privkey(data["handle"]))
             self.router.push("/main", window)
         else:
             self.error_message.setText(response.json["response"])
             self.login_button.setEnabled(True)
+
+    @staticmethod
+    def _load_privkey(handle: str) -> rsa.PrivateKey:
+        PATH: str = f"{Path(__file__).parent.parent.parent.absolute()}{os.sep}{handle}_privkey.pem"
+        with open(PATH, "r") as file:
+            data = file.read()
+        return rsa.PrivateKey.load_pkcs1(data)
 
     def _create_account(self, window) -> None:
         """

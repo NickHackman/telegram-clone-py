@@ -1,26 +1,35 @@
 import re
-from typing import List, Pattern, Any
+from typing import List, Pattern, Any, Dict
+from threading import Thread
+from datetime import datetime
+import binascii
+import time
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import rsa  # type: ignore
 
 from . import Router, MENU_ICON
 from ..components.chat import ChatWidget
 from ..components.chat_window import ChatWindow
 
 from .. import requests
-from .thread import QtThread
 from ..components.chat_list_widget_item import ChatListWidgetItem
 
 from ..models import Chat
 from ..models.user import User
+from ..models.message import Message
 
 
 class Main(QtCore.QObject):
+    users: List[Chat]
+    chats: List[Chat]
     search_signal = QtCore.pyqtSignal(object)
 
     def __init__(self, router: Router):
         super(Main, self).__init__(None)
+        self.users = []
         self.router = router
+        self.router.state["chat"] = {}
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -76,7 +85,7 @@ class Main(QtCore.QObject):
         )
         self.search_input.setClearButtonEnabled(True)
         self.search_input.setObjectName("lineEdit")
-        self.search_input.editingFinished.connect(lambda: self._search())
+        self.search_input.textChanged.connect(lambda: self._search())
         self.horizontalLayout.addWidget(self.search_input)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.listWidget = QtWidgets.QListWidget(self.dockWidgetContents)
@@ -85,12 +94,19 @@ class Main(QtCore.QObject):
         )
         self.listWidget.setStyleSheet("border: none;")
         self.listWidget.setObjectName("listWidget")
+        self.listWidget.setSpacing(5)
         self.verticalLayout.addWidget(self.listWidget)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.dockWidget.setWidget(self.dockWidgetContents)
+        thread = Thread(target=self._update_chats, daemon=True)
+        thread.start()
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidget)
 
         self.retranslateUi(MainWindow)
+        timer = QtCore.QTimer(MainWindow)
+        timer.timeout.connect(self._update_lists)
+        timer.setInterval(1500)
+        timer.start()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -103,11 +119,11 @@ class Main(QtCore.QObject):
     ) -> None:
         # Subclass QListWidgetItem to allow for data then pass into ChatWindow
         central_widget = QtWidgets.QWidget()
-        chat_window = ChatWindow(item.chat)
+        chat_window = ChatWindow(item.chat, item.state)
         chat_window.setupUi(central_widget)
         window.setCentralWidget(central_widget)
 
-    def _query_users(self, regex: Pattern[str]) -> List[Any]:
+    def _query_users(self, regex: Pattern[str]):
         """
         Queries Users then filters based on regex
 
@@ -123,17 +139,15 @@ class Main(QtCore.QObject):
         List[Any]
         new list of Chats
         """
-        url: str = self.router.state["url"]
-        response = requests.get(f"{url}/users")
+        response = requests.get(f"{self.router.state['url']}/users")
         response.raise_for_status()
-        users = [
-            Chat(User(name, "", ""), [])
-            for name in response.json["response"]
-            if regex.match(name)
+        self.users = [
+            Chat(User(user["handle"], user["public_key"], user["bio"]), [])
+            for user in response.json["response"]
+            if regex.match(user["handle"])
         ]
-        return users
 
-    def _update_list(self, new_list: List[Chat]) -> None:
+    def _update_lists(self) -> None:
         """
         Updates the list of chats shown with the new results
 
@@ -144,10 +158,62 @@ class Main(QtCore.QObject):
               New list of chats
         """
         self.listWidget.clear()
-        for item in new_list:
-            list_item = ChatListWidgetItem(item, self.listWidget)
+        self._update_list(self.users)
+        self._update_list(self.router.state["chat"].values())
+
+    def _update_list(self, item_list: List[Any]) -> None:
+        for item in item_list:
+            list_item = ChatListWidgetItem(item, self.router.state, self.listWidget)
             self.listWidget.addItem(list_item)
-            self.listWidget.setItemWidget(list_item, ChatWidget(item))
+            widget = ChatWidget(item)
+            list_item.setSizeHint(widget.sizeHint())
+            self.listWidget.setItemWidget(list_item, widget)
+
+    @staticmethod
+    def decrypt_base64(b64_msg: str, privkey: rsa.PrivateKey) -> str:
+        msg_bytes = binascii.a2b_base64(b64_msg)
+        return rsa.decrypt(msg_bytes, privkey).decode()
+
+    def _update_chats(self) -> None:
+        state: Dict[str, Any] = self.router.state
+        while True:
+            time.sleep(1.5)
+            response = requests.get(
+                f"{state['url']}/messages/{state['handle']}/{state['jwt']}"
+            )
+            chats = response.json["response"]
+            state = self.router.state
+            self.chats = []
+            for chat in chats:
+                user: User = User(chat, "", "")
+                messages: List[Message] = []
+                for msg in chats[chat]:
+                    decrypt_msg: str = self.decrypt_base64(
+                        msg["message"], state["privkey"]
+                    )
+                    try:
+                        messages.append(
+                            Message(
+                                msg["id"],
+                                decrypt_msg,
+                                state["handle"],
+                                msg["sender"],
+                                msg["date"],
+                            )
+                        )
+                    except KeyError:
+                        messages.append(
+                            Message(
+                                msg["id"],
+                                decrypt_msg,
+                                chat,
+                                state["handle"],
+                                msg["date"],
+                            )
+                        )
+                self.chats.append(Chat(user, messages))
+                for chat in self.chats:
+                    self.router.state["chat"][chat.other.handle] = chat
 
     def _search(self) -> None:
         """
@@ -157,8 +223,7 @@ class Main(QtCore.QObject):
         """
         try:
             regex: Pattern[str] = re.compile(self.search_input.text())
-            thread = QtThread(self._query_users, self.search_signal, regex)
-            thread._finished.connect(self._update_list)
+            thread = Thread(target=self._query_users, args=[regex])
             thread.start()
         except re.error:
             pass
