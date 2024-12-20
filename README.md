@@ -10,7 +10,7 @@ into [frontend](https://github.com/NickHackman/telegram-clone-py/tree/master/fro
 ## Purpose
 
 This Telegram clone is written in Python for a computer science course at [Ohio
-State Universiry](https://www.osu.edu/), CSE 3461. The purpose of
+State University](https://www.osu.edu/), CSE 3461. The purpose of
 this clone is to satisfy the requirements of that lab.
 
 - Server and Client communicate via `TCP`
